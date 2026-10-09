@@ -1,0 +1,25 @@
+{
+  "command": "cargo run -p ziquid-chains --example samechain_fill2_vectors",
+  "generation": "Actual native FillExecution, separate owner_leaf calls with distinct controlled policies and public deterministic oracle salts, aggregate_commitment, validate_commitment, OwnerJournal and build_fill_call.",
+  "generator": "crates/chains/examples/samechain_fill2_vectors.rs",
+  "limits": "Borrowed original public B does not open the controlled policies; reproducible codec correspondence only, not independent-owner/private-entropy acceptance. Preserved proof bytes have invalid zero pairing points. No real owner policies, seeds or witnesses used or exported. Public deterministic salts must never be used in production; real independent-owner processes require separately qualified private OS entropy.",
+  "outer_journal_version": 1,
+  "output_sha256": {
+    "SamechainFill2Vectors.sol": "7e90b08bc0ce2f397b82e79101dc3911129a14b23f561a3350b465889ae1c4fb",
+    "samechain-fill2-vectors.json": "a9091576b786b718e431324edcffbc63b557822c3e915641b42f7b7bcc70f9e4"
+  },
+  "packet_schema": 1,
+  "public_oracle_salts_hex": [
+    "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+  ],
+  "relation_version": 2,
+  "source_sha256": {
+    "chains": "34629966f03d6933bdad8a008b64a3aac8b30139550f1db5f43f8babe356435c",
+    "fill": "9bd0dd20392a0e22d3a8c1d43941a575eac49e5b22de5ca00290b23f8df0119e",
+    "generator": "6a80e6e89bdf8bfd8ca12ffb6f31e1ec5033585c82a5aabef639bc534b09f94e",
+    "original_calls": "4666f6bfec3e454c718afd72a231d0019558e8c41af5f3182dd304bfc2d5a8f5",
+    "original_native": "369ac38f9de1aa7ec1c53b6563e3db7bea7da8ce5b83aafce53a4d7162cda2fb",
+    "protocol": "7ae3177fbd688e11c5e2278fac8bb93c89a0b38c101aeb54bbb992a578e4655a"
+  }
+}

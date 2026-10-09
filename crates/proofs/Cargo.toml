@@ -1,0 +1,79 @@
+[package]
+name = "ziquid-proofs"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[features]
+default = []
+sp1-local = ["sp1-execute", "dep:sp1-sdk", "dep:sp1-verifier", "dep:tokio", "dep:dirs"]
+sp1-execute = ["dep:sp1-core-executor", "dep:sp1-primitives", "dep:tracing", "dep:log", "dep:tokio", "tokio/sync"]
+native-relation-smoke = ["zcash_primitives/non-standard-fees"]
+
+[dependencies]
+orchard = { version = "=0.15.5", default-features = false, features = ["std", "circuit"] }
+zcash_note_encryption = "=0.4.2"
+pczt = { version = "=0.9.3", default-features = false, features = ["std", "orchard", "io-finalizer"] }
+ziquid-protocol = { path = "../protocol" }
+sha2 = { workspace = true, features = ["compress"] }
+sp1-sdk = { version = "=6.8.1", default-features = false, features = ["native-gnark"], optional = true }
+sp1-verifier = { version = "=6.8.1", default-features = false, optional = true }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"], optional = true }
+sp1-core-executor = { version = "=6.8.1", default-features = false, optional = true }
+sp1-primitives = { version = "=6.8.1", default-features = false, optional = true }
+zcash_primitives = { version = "=0.30.1", default-features = false, features = ["std", "temporary-zcashd"] }
+zcash_protocol = { version = "=0.10.5", default-features = false, features = ["std"] }
+zcash_transparent = { version = "=0.10.0", default-features = false, features = ["std"] }
+zcash_script = { version = "=0.4.5", default-features = false, features = ["std", "signature-validation"] }
+blake2b_simd = "=1.0.4"
+corez = { version = "=0.1.1", features = ["std"] }
+primitive-types.workspace = true
+zcash_encoding = "=0.4.0"
+zcash_history = "=0.5.0"
+zcash_spec = "=0.2.1"
+incrementalmerkletree = "=0.8.2"
+sapling-crypto = { version = "=0.7.0", default-features = false, features = ["std", "temporary-zcashd"] }
+sprout_bn = { package = "substrate-bn-succinct-rs", version = "=0.6.0", default-features = false }
+curve25519-dalek = { version = "=4.1.3", default-features = false, features = ["precomputed-tables"] }
+bellman = { version = "=0.14.0", default-features = false, features = ["groth16"] }
+bls12_381 = { version = "=0.8.0", default-features = false, features = ["groups", "pairings", "alloc"] }
+jubjub = { version = "=0.10.0", default-features = false, features = ["alloc"] }
+group = { version = "=0.13.0", default-features = false }
+chacha20poly1305 = "=0.10.1"
+ed25519-dalek = { version = "=2.2.0", default-features = false, features = ["std", "zeroize"] }
+zeroize = "=1.9.0"
+serde = { version = "1", default-features = false }
+# Deliberately caps unified tracing/log dependencies process-wide, including SP1
+# worker threads: programmatic subscribers and log bridges cannot enable TRACE
+# register events/spans. DEBUG/INFO diagnostics remain available in both profiles.
+tracing = { version = "=0.1.44", default-features = false, features = ["std", "max_level_debug", "release_max_level_debug"], optional = true }
+log = { version = "=0.4.34", default-features = false, features = ["max_level_debug", "release_max_level_debug"], optional = true }
+# Must match pinned sp1-prover's home resolver (including empty HOME fallback).
+dirs = { version = "=5.0.1", optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rustix = { version = "=1.1.5", default-features = false, features = ["std", "fs", "process"] }
+
+[dev-dependencies]
+tracing-subscriber = { version = "=0.3.23", default-features = false, features = ["registry"] }
+ziquid-zcash = { path = "../zcash" }
+# Test configured ZIP317 action fees without changing the production dependency features.
+zcash_primitives = { version = "=0.30.1", default-features = false, features = ["non-standard-fees"] }
+rand_chacha = "=0.3.1"
+rand_core = { version = "=0.6.4", features = ["getrandom"] }
+ff = "=0.13.1"
+secp256k1 = { version = "=0.29.1", default-features = false, features = ["std"] }
+redjubjub = { version = "=0.8.0", default-features = false, features = ["std"] }
+# Route-1a qualification transcript (research): 2-of-2 DKG + external-alpha
+# re-randomized FROST over the RedPallas ciphersuite. Test-only; the production
+# build does not enable reddsa/frost.
+reddsa = { version = "=0.5.2", default-features = false, features = ["std", "frost"] }
+frost-rerandomized = { version = "=3.0.0", default-features = false, features = ["serialization"] }
+# The workspace's own threshold primitives, exercised in the route-1a PCZT
+# spend integration test (test-only dependency).
+ziquid-threshold = { path = "../threshold" }
+serde_json = "1"
+
+[lints]
+workspace = true
+

@@ -1,0 +1,1 @@
+ALTER TABLE ledger_allocations DROP CONSTRAINT ledger_allocations_pair_allocation_key;

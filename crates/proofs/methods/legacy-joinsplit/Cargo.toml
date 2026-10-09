@@ -1,0 +1,29 @@
+[package]
+name = "ziquid-legacy-joinsplit-guest"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+sp1-zkvm = "=6.8.1"
+zcash_primitives = { version = "=0.30.1", default-features = false, features = ["std", "temporary-zcashd"] }
+zcash_protocol = { version = "=0.10.5", default-features = false, features = ["std"] }
+zcash_transparent = { version = "=0.10.0", default-features = false, features = ["std"] }
+zcash_encoding = "=0.4.0"
+corez = { version = "=0.1.1", features = ["std"] }
+sha2 = "=0.10.9"
+blake2b_simd = { version = "=1.0.4", default-features = false }
+sprout_bn = { package = "substrate-bn-succinct-rs", version = "=0.6.0", default-features = false }
+curve25519-dalek = { version = "=4.1.3", default-features = false, features = ["precomputed-tables"] }
+bellman = { version = "=0.14.0", default-features = false, features = ["groth16"] }
+bls12_381 = { version = "=0.8.0", default-features = false, features = ["groups", "pairings", "alloc"] }
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.test]
+debug = 0
+incremental = false

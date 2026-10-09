@@ -1,0 +1,24 @@
+[package]
+name = "ziquid-sprout-groth16-guest"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+sp1-zkvm = "=6.8.1"
+sha2 = "=0.10.9"
+blake2b_simd = { version = "=1.0.4", default-features = false }
+sprout_bn = { package = "substrate-bn-succinct-rs", version = "=0.6.0", default-features = false }
+zcash_protocol = { version = "=0.10.5", default-features = false, features = ["std"] }
+bellman = { version = "=0.14.0", default-features = false, features = ["groth16"] }
+bls12_381 = { version = "=0.8.0", default-features = false, features = ["groups", "pairings", "alloc"] }
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.test]
+debug = 0
+incremental = false

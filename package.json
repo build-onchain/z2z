@@ -1,0 +1,9 @@
+{
+  "name": "ziquid-monorepo",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "npm run build:sdk",
+    "build:sdk": "npm run build --workspace @ziquid/sdk"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "scope": "Public synthetic differential fixtures; no proof certificate or asset receipt",
+  "observed_generator": "cargo run --offline --locked --release -p ziquid-proofs --example temporary_samechain_vectors",
+  "execution_artifact": "artifact://2257",
+  "generator_sha256": "3a6cf2b88f990b24ba283502449c243d1b0406746ec3439f2f139406aac85c68",
+  "packets": 9,
+  "tree_insertions": 17,
+  "json_sha256": "369ac38f9de1aa7ec1c53b6563e3db7bea7da8ce5b83aafce53a4d7162cda2fb",
+  "source_owner": "actual native Rust verify-generated journals and canonical encoders; independent Solidity consumer",
+  "generator_removed_after_execution": true
+}

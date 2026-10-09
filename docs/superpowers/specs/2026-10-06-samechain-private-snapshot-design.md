@@ -1,0 +1,54 @@
+# Immutable samechain private snapshot design
+
+> **Status 2026-10-06:** The written spec and plan are approved, and this is the next code wave (microplan P4.01/P4.02/P4.03 private part → P3.03 stage b). "Durable public node backend remains undecided" is superseded: the owner selected a per-owner PostgreSQL *design target*, with no SQL execution permission. The construction is unchanged, because a snapshot never touches the journal. The snapshot is published after P3.04 freezes the packet and before consent (owner order). X.08 adds lane descriptors later as a **new envelope version** and leaves v1 alone.
+
+## Purpose and approval
+
+User explicitly approved samechain encrypted bundle/restore implementation and checks with generated keys on 2026-10-06. Durable public node backend remains undecided. Deliver immutable owner-operation capability backup and clean-process restore, not a wallet inventory, financial journal, production scanner, Released/Unknown reconciliation, proof, signing or asset recovery. Existing production-secret, SQL, prover-resource, deployment and transaction permissions remain unchanged. Native P/Q custody and preserved old programs remain separate.
+
+## Chosen construction
+
+One immutable encrypted file contains one complete existing witness: Creation, Fill2 for one owner, Cancel/Exit, or ordinary Withdrawal. Earlier creation/output snapshots remain separately retained; newer files never replace earlier capabilities or select the newest spendable generation. Reuse the existing four-variant `OwnedOwnerInput`, make it available to default-build consumers, and keep executor/prover decoding unchanged. No second private note schema, dependencies, storage framework, sixth crate or CLI command family.
+
+Alternatives rejected: native P/Q container cannot represent samechain rights; mutable wallet inventory introduces unresolved financial-state authority; duplicating filesystem publication would fork security policy.
+
+## Interface
+
+New `runtime::samechain::backup` defines:
+
+- `SnapshotOperation { Fill, Cancel, Exit, Withdrawal, Creation }` with fixed codes0..4. These are snapshot selection codes, not guest mode codes.
+- `SnapshotScope { ControlledGenerated, IndependentlySelected }` codes0/1; labels alone establish no trust/eligibility and tests use generated scope only.
+- `HistoryPin { block_hash: [u8;32], block_number: U256 }`.
+- `SnapshotSelection { scope: SnapshotScope, deployment: Deployment, token: [u8;20], token_code: [u8;32], policy_id: [u8;32], operation: SnapshotOperation, role: Role, packet_digest: [u8;32], execution: Option<FillExecution>, history: Option<HistoryPin>, elf_sha256: [u8;32], kit_manifest_digest: [u8;32] }`.
+- `save_snapshot(path: impl AsRef<Path>, key: &[u8;32], namespace: [u8;32], selection: &SnapshotSelection, material: &OwnedOwnerInput) -> Result<(), BackupError>`.
+- `load_snapshot(path: impl AsRef<Path>, key: &[u8;32], namespace: [u8;32], expected: &SnapshotSelection) -> Result<OwnedOwnerInput, BackupError>`.
+
+Selection is independently supplied, not inferred from ciphertext. Deployment/token/code/policy/digest/ELF/manifest and namespace must be nonzero/canonical. Creation has no history pin; spends require nonzero hash and exact U256 number. Fill alone has canonical independent E. Selected operation/role/action/digest/E/deployment correspond exactly to typed material; creation fixed token also matches. Every token-bearing asset in E, own input, owned output openings, authenticated own policy and public packet effects must equal selection.token; no other token can be backed up under contradictory fixed-token metadata. Withdrawal role is A. Token-code/policy/history/kit pins remain independently supplied descriptors, not chain-authentication, eligibility or artifact-availability claims.
+
+Owning enum gets redacted Debug, no Clone requirement. Existing `as_input()` conversion stays borrowed; its CLI decoder remains feature-gated. Pure backup mode decode dispatches existing witness codecs (guest mapping Fill0/CancelExit1/Withdrawal2/Creation3), never worker mapping. Existing enum is the one owning material type; no aliases/shims.
+
+## Format and bounds
+
+Distinct physical envelope domain `ziquid.samechain.backup.v1`; native `ziquid.u.custody.v3` and retained v1/v2 unchanged. Nonce24, ciphertext length u32LE, ciphertext+tag16. Authenticate complete header plus namespace32 and SHA256 canonical snapshot context32. Plaintext: `Z2Z_SAMECHAIN_PRIVATE_SNAPSHOT\0`, version u16BE1, selection length u32BE, canonical selection, guest mode u8, witness length u32BE, one complete existing witness. Strict exhaustion and closed tags; no strings/paths/URLs/credentials/extensions. Selection field order is scope u8; deployment-frame length u32BE and complete `Deployment::encode()` frame; token20; token_code32; policy_id32; operation u8; role u8; packet_digest32; execution-presence u8(0/1), followed when1 by length u32BE and complete `FillExecution::encode()` frame; history-presence u8(0/1), followed when1 by block_hash32 and block_number U256 as32-byte BE; elf_sha25632; kit_manifest_digest32. Nested frames use their exact existing domains/version and strict decoders; lengths must equal canonical reencoding. Deployment maximum=`len(Z2Z_SAMECHAIN_DEPLOYMENT\0)+2+146`; E maximum=`len(Z2Z_SAMECHAIN_FILL_EXECUTION\0)+2+106`; derive selection maximum from this layout (both option payloads included for a conservative finite bound). Witness <= existing256KiB; plaintext maximum=plaintext-domain length+2+4+selection-maximum+1+4+256KiB; envelope adds envelope-domain length+24+4+16. Check every bound before allocation. One selection encoder supplies both payload bytes and context hash.
+
+Context hash domain `Z2Z_SAMECHAIN_PRIVATE_SNAPSHOT_CONTEXT\0`, version u16BE1 and exact canonical selection bytes. Packet/E digest/pins are public metadata; keep them encrypted to avoid unnecessary linkage. Load authenticates against independently supplied expected context then requires decoded selection equal expected and material correspondence. Protected staging recognition runs before current-format incompleteness: both descriptors preserve any nonempty prefix ambiguous with the other current domain, native retained v1/v2, or the version-family prefixes `ziquid.u.custody.v` / `ziquid.samechain.backup.v`; unknown version-family bytes also remain untouched. Empty staging alone may be discarded. Native current-domain prefixes already rejected by retained recognition stay UnsupportedVersion; native `v3` full-domain truncated header/body remains the sole nonempty native disposable form. Samechain full-domain v1 truncated header/body is its sole nonempty disposable form. A bare common `ziquid.` or `.v` prefix is never deleted in either direction. Complete other-domain and unknown-version artifacts remain intact; authentication failures are never disposable. Explicitly test cross-format/shared/retained/unknown staging and finals.
+
+## Semantic restoration
+
+Before save and after load, run actual unsigned reviewer for the selected complete packet/deployment/order/role/action/E/payer/nonce/input. Preserve zero consent. If consent is nonzero, additionally run the matching strict signed predicate; invalid partial/nonzero consent rejects, never repaired or signed. Complete packet identity and canonical witness bytes must remain identical across restore. Revalidate actual AEAD owned outputs/keys, input/path/leaf/economics using existing relations, not codec shape alone. Input membership is descriptive historical proof path, not fresh financial eligibility.
+
+## Custody reuse
+
+Extract only concrete encrypted-byte publication into a crate-private custody seam with static envelope descriptor (domain, retained recognition, plaintext bound). Exactly two concrete users: native PrivatePreparation and samechain snapshots. Native wrappers keep full native semantic validation and errors; native existing envelopes remain byte-compatible. Shared save authenticates existing/staged plaintext and constant-time compares requested canonical validated bytes; shared load returns guarded plaintext to caller's decoder. Do not add a public generic crypto service/backend trait. Linux descriptor-relative trust/NOFOLLOW/0700 directories/0600 single-link regular files, reserved dot-staging namespace, directory flock, exact bounded reads, NOREPLACE install and file/parent fsync remain unchanged. Unsupported platforms reject, no weaker fallback.
+
+Complete secret-buffer capacity including tag must precede secret append. Shared encryption must never grow filled secret allocations: detached AEAD or capacity-checked guarded destination. Existing witness encoded buffer stays guarded and copied once into full-sized guarded payload then dropped. Partial decodes/temporaries guarded or held in existing erasing types. Errors categorical; no private path/source/token/seed/opening/keys/witness Debug/log/export. Borrowed independent backup key never stored inside file. Same UID/root, registers/compiler/prover copies, hardware durability and secure deletion remain explicit limits.
+
+## State and preservation
+
+Identical retry authenticates and resyncs existing bytes without new nonce. Different canonical material at same basename is Conflict, no overwrite. Complete identical pending can finish; only recognized interrupted current envelope is disposable. Unknown/old/auth-failing staging retained. Old native domain/artifact behavior unchanged; original ELF/VK/setup/journals untouched. Snapshot restore returns material, never Available/Completed/Released or unlocked capacity. Backend undecided: no public operational journal or auto export/funding/sign/send.
+
+## Verification acceptance
+
+Parent observes missing-interface RED before source. Generated all-operation semantic snapshots, exact retry/conflict/older-file preservation, canonical framing and bounds, wrong key/namespace/context/all selection pins/mode/E/action/digest, corruption/unknown/truncation/suffix and invalid owner/path/recovery material reject. Existing native custody regressions prove extraction did not change policy. Filesystem hostile path/mode/ancestor/hardlink/FIFO and interrupted/concurrent publication follow retained patterns, explicit0700 temp roots.
+
+Actual clean-process producer writes generated zero-consent complete capability snapshots, exits/reaps; fresh restore process receives only independent public selection and backup key via unnamed private pipe, no witness regeneration/inheritance. Restore verifies exact public packet/digest/unsigned message, decrypts complete outputs and reuses restored creation/partial/proceeds/ordinary-change/cancel-return capability for existing unsigned constructors/CLI. No secret file/argv/stdout. Qualified genuine VM/wrapped/cold-funded recovery, full offline prover kit and lifecycle reconciliation remain separate missing acceptance.

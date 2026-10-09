@@ -1,0 +1,5 @@
+# SP1 decodes fixed-width instructions; native C must not enable RISC-V C.
+[env]
+CC_riscv64im_succinct_zkvm_elf = { value = "clang", force = true }
+CFLAGS_riscv64im_succinct_zkvm_elf = { value = "--target=riscv64-unknown-none-elf -march=rv64im -mabi=lp64 -ffreestanding -fno-builtin -fno-stack-protector", force = true }
+AR_riscv64im_succinct_zkvm_elf = { value = "llvm-ar", force = true }

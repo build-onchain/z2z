@@ -1,0 +1,30 @@
+[package]
+name = "ziquid-solana-harness"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+litesvm = { version = "=0.10.0", features = ["precompiles"] }
+solana-account = "=3.4.0"
+solana-address = { version = "=2.2.0", features = ["curve25519"] }
+solana-clock = "=3.0.0"
+solana-ed25519-program = "=3.0.0"
+solana-instruction = "=3.2.0"
+solana-keypair = "=3.1.2"
+solana-message = { version = "=3.1.0", features = ["bincode"] }
+solana-program-pack = "=3.0.0"
+solana-pubkey = "=3.0.0"
+solana-signer = "=3.0.0"
+solana-system-interface = { version = "=2.0.0", features = ["bincode"] }
+solana-transaction = { version = "=3.1.0", features = ["bincode"] }
+solana-transaction-error = "=3.0.0"
+spl-token-interface = "=2.0.0"
+bincode = "1.3.3"
+sha2 = "0.10.9"
+ziquid-protocol = { path = "../../../crates/protocol", default-features = false, features = ["market"] }
+ziquid-solana-interface = { path = "../interface" }
+
+[[test]]
+name = "compiled_elf"
+path = "tests/compiled_elf.rs"

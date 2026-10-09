@@ -1,0 +1,70 @@
+{
+  "date": "2026-10-02",
+  "scope": "Documentation/design only; no product code changes or real company-off/circuit/contract/funded runtime acceptance",
+  "files_checked": 87,
+  "local_markdown_links_checked": 1376,
+  "missing_paths": 0,
+  "new_missing_anchors": 0,
+  "inherited_missing_anchors": [
+    {
+      "file": "docs/imports/kerb/docs/docs/superpowers/specs/2026-09-29-kerb-zolana-design.md",
+      "url": "../../../../../../../../zoss/docs/ARCHITECTURE.md#5-interface-proposed",
+      "reason": "missing_anchor",
+      "target": "/home/harry-riddle/dev/github.com/build-onchain/zoss/docs/ARCHITECTURE.md"
+    }
+  ],
+  "kerb_import_files_verified": 53,
+  "kerb_source_and_import_hashes_match": true,
+  "native_E1_E21_preserved": true,
+  "pre_redesign_snapshots_verified": 2,
+  "model": {
+    "reachable_state_visits": 44,
+    "checks": [
+      "conservation",
+      "cancel/fill single winner",
+      "partial successor/replay",
+      "failed-transfer model rollback",
+      "F1/F2 shared-generation cancellation",
+      "accepted root retained across120appends/3tree generations",
+      "private-matching two-world output trace"
+    ],
+    "ceiling": "Model only, not target implementation/cryptographic proof or real autonomous settlement"
+  },
+  "manual_drills": "UNRUN; implementation and route/action qualification required",
+  "independent_review": {
+    "initial_medium_findings": 2,
+    "document_corrections": "generation-wide cancel and retained roots/offline already-authorized fill policy",
+    "targeted_review_remaining_findings": 0
+  },
+  "navigation_smoke_routes": {
+    "overview": [
+      "README.md",
+      "docs/PRODUCT.md",
+      "docs/SERVER-INDEPENDENCE.md",
+      "docs/BLOCKERS.md"
+    ],
+    "architecture": [
+      "docs/README.md",
+      "docs/ARCHITECTURE.md",
+      "docs/MODULES.md",
+      "docs/modules/wallet-authoring.md",
+      "docs/modules/zcash-proofs.md"
+    ],
+    "manual_evidence": [
+      "docs/README.md",
+      "docs/SERVER-INDEPENDENCE.md",
+      "docs/SERVER-INDEPENDENCE-RESEARCH.md"
+    ],
+    "crosschain_limits": [
+      "docs/README.md",
+      "docs/CROSSCHAIN-MARKET-RESEARCH.md",
+      "docs/NATIVE-IMPLEMENTATION-STATUS.md"
+    ],
+    "provenance": [
+      "docs/README.md",
+      "docs/CONSOLIDATION.md",
+      "docs/imports/kerb/README.md",
+      "docs/imports/kerb/docs/reviews/2026-10-02-strict-privacy-feasibility.md"
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-10-06T16:49:46.863Z",
+  "ended_at": "2026-10-06T16:51:38.607Z",
+  "exit_code": 0,
+  "event_count": 74,
+  "segments": {
+    "s1_p2p_transport": {
+      "state": "done",
+      "peer_id_equal": true,
+      "reconnected": true,
+      "peer_id_b": "12D3KooWFB1smwQS6nNBAi2rcCcfb5SKqXizBmhcmUn9j65vxZ29",
+      "listen_port": 43769,
+      "identity_file_created": true,
+      "peer_id_a": "12D3KooWHcd9HPenBGLhCiiQ79ZDNa5mPCrN958rvbaN28rH7PZa",
+      "retry_attempt": 1,
+      "retry_delay_ms": 1000,
+      "peer_id_b_restarted": "12D3KooWFB1smwQS6nNBAi2rcCcfb5SKqXizBmhcmUn9j65vxZ29",
+      "duration_seconds": 1.05,
+      "events": 31
+    },
+    "s5_native_zcash_prepare": {
+      "state": "done",
+      "exit_code": 0,
+      "lines": 4,
+      "artifact": "demo/out/s5_prepare.txt",
+      "duration_seconds": 84.47,
+      "events": 6
+    },
+    "s2_snapshot_restore": {
+      "state": "done",
+      "mode": "example",
+      "fresh_process_restore": true,
+      "artifact": "demo/out/s2_snapshot.bin",
+      "duration_seconds": 0.82,
+      "events": 8
+    },
+    "s4_execute_owner": {
+      "state": "done",
+      "exit_code": 0,
+      "artifact": "demo/out/s4_recorded.txt",
+      "duration_seconds": 24.44,
+      "events": 24
+    },
+    "s3_pg_gate": {
+      "state": "done",
+      "test": "enabled::committed_export_reads_key_only_after_real_journal_fence",
+      "exit_code": 0,
+      "artifact": "demo/out/s3_recorded.txt",
+      "duration_seconds": 0.98,
+      "events": 5
+    }
+  },
+  "settlement": "IN_DEVELOPMENT"
+}

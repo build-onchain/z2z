@@ -1,0 +1,28 @@
+[package]
+name = "ziquid-zcash"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+ziquid-protocol = { path = "../protocol", default-features = false, features = ["native", "market"] }
+ziquid-proofs = { path = "../proofs" }
+zcash_primitives = { version = "=0.30.1", default-features = false, features = ["std", "circuits"] }
+pczt = { version = "=0.9.3", default-features = false, features = ["std", "zcp-builder", "io-finalizer", "prover", "signer", "tx-extractor"] }
+orchard = { version = "=0.15.5", default-features = false, features = ["std", "circuit"] }
+zcash_protocol = { version = "=0.10.5", default-features = false, features = ["std"] }
+zcash_note_encryption = { version = "=0.4.2", default-features = false, features = ["alloc"] }
+rand_core = { version = "=0.6.4", features = ["getrandom"] }
+zoss-zcash = { path = "../../../zoss/crates/zcash" }
+sha2.workspace = true
+zeroize = "=1.9.0"
+
+[dev-dependencies]
+rand_chacha = "=0.3.1"
+incrementalmerkletree = { version = "=0.8.2", default-features = false, features = ["legacy-api"] }
+zcash_primitives = { version = "=0.30.1", default-features = false, features = ["non-standard-fees"] }
+zcash_protocol = { version = "=0.10.5", default-features = false, features = ["local-consensus"] }
+serde_json = "1"
+
+[lints]
+workspace = true

@@ -1,0 +1,61 @@
+[package]
+name = "ziquid-protocol"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[features]
+default = ["native"]
+native = ["dep:primitive-types", "sha2/std", "dep:zeroize", "dep:blake2b_simd"]
+market = ["dep:curve25519-dalek", "dep:solana-curve25519"]
+market-host = ["market", "dep:ed25519-dalek"]
+
+[dependencies]
+primitive-types = { workspace = true, optional = true }
+sha2.workspace = true
+curve25519-dalek = { version = "=4.1.3", default-features = false, optional = true }
+ed25519-dalek = { version = "=2.2.0", default-features = false, optional = true }
+zeroize = { version = "=1.9.0", default-features = false, features = ["alloc"], optional = true }
+blake2b_simd = { version = "=1.0.4", optional = true }
+
+[target.'cfg(target_os = "solana")'.dependencies]
+solana-curve25519 = { version = "=3.1.14", default-features = false, features = ["agave-unstable-api"], optional = true }
+
+[[example]]
+name = "allocation"
+required-features = ["native"]
+
+[[test]]
+name = "allocation"
+required-features = ["native"]
+
+[[test]]
+name = "context"
+required-features = ["native"]
+
+[[test]]
+name = "samechain"
+required-features = ["native"]
+
+[[test]]
+name = "samechain_withdrawal"
+required-features = ["native"]
+
+[[test]]
+name = "samechain_creation"
+required-features = ["native"]
+
+[[test]]
+name = "samechain_tree"
+required-features = ["native"]
+
+[[test]]
+name = "semantic_commitments"
+required-features = ["native"]
+
+[[test]]
+name = "market_contracts"
+required-features = ["market"]
+
+[lints]
+workspace = true

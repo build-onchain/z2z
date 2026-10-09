@@ -1,0 +1,10 @@
+{
+  "source_repository": "build-onchain/kerb",
+  "source_paths": {
+    "policy.json": "crates/runtime/tests/fixtures/policy.json",
+    "unsigned.pczt": "crates/runtime/tests/fixtures/unsigned.pczt"
+  },
+  "provenance": "Exact public synthetic LocalFixture effect-inspection vectors relocated with their consumers.",
+  "authority": "No signing keys, source history, mined payment, proof validity, network observation or financial settlement authority.",
+  "wire_identity": "Canonical KERB domain and PCZT bytes are preserved without branding replacement."
+}

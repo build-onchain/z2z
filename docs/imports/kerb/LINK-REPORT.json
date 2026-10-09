@@ -1,0 +1,66 @@
+{
+  "checked_at": "2026-10-02",
+  "method": "Local Markdown inline/reference path and heading/explicit-anchor audit; fenced commands and remote URLs excluded. No builds/runtime/network checks.",
+  "source_files": 53,
+  "source_sha256_unchanged": true,
+  "import_hashes_match_manifest": true,
+  "only_manifested_link_rewrites": true,
+  "imported_source_tree_complete": true,
+  "canonical_links_checked": 267,
+  "canonical_issues": [],
+  "import_links_checked": 636,
+  "new_missing_paths_or_anchors": 0,
+  "inherited_issues": [
+    {
+      "import": {
+        "file": "docs/imports/kerb/docs/docs/superpowers/specs/2026-09-29-kerb-zolana-design.md",
+        "url": "../../../../../../../../zoss/docs/ARCHITECTURE.md#5-interface-proposed",
+        "reason": "missing_anchor",
+        "target": "/home/harry-riddle/dev/github.com/build-onchain/zoss/docs/ARCHITECTURE.md"
+      },
+      "source": {
+        "file": "docs/docs/superpowers/specs/2026-09-29-kerb-zolana-design.md",
+        "url": "../../../../../zoss/docs/ARCHITECTURE.md#5-interface-proposed",
+        "reason": "missing_anchor",
+        "target": "/home/harry-riddle/dev/github.com/build-onchain/zoss/docs/ARCHITECTURE.md"
+      },
+      "treatment": "Retained historical proposed-interface fragment; current shared-core contract is linked in archive wrapper/canonical docs. No symlink or fabricated section. The source itself has the same missing fragment."
+    }
+  ],
+  "documentation_files_checked": 76,
+  "all_documentation_local_links_checked": 1093,
+  "all_documentation_issues": [
+    {
+      "file": "docs/imports/kerb/docs/docs/superpowers/specs/2026-09-29-kerb-zolana-design.md",
+      "url": "../../../../../../../../zoss/docs/ARCHITECTURE.md#5-interface-proposed",
+      "reason": "missing_anchor",
+      "target": "/home/harry-riddle/dev/github.com/build-onchain/zoss/docs/ARCHITECTURE.md"
+    }
+  ],
+  "navigation_smoke_routes": {
+    "product": [
+      "README.md",
+      "docs/PRODUCT.md",
+      "docs/CONSOLIDATION.md",
+      "docs/BLOCKERS.md"
+    ],
+    "kerb_current": [
+      "docs/README.md",
+      "docs/imports/kerb/README.md",
+      "docs/imports/kerb/docs/README.md",
+      "docs/imports/kerb/docs/docs/superpowers/specs/2026-10-02-kerb-safety-core-design.md"
+    ],
+    "historical_review": [
+      "docs/imports/kerb/README.md",
+      "docs/imports/kerb/zolana-review-2026-09-29/README.md",
+      "docs/imports/kerb/zolana-review-2026-09-29/00-CANONICAL.md"
+    ],
+    "research": [
+      "docs/imports/kerb/README.md",
+      "docs/imports/kerb/zolana-research-2026-09-30/README.md",
+      "docs/imports/kerb/zolana-research-2026-09-30/privacy-admission.md"
+    ]
+  },
+  "navigation_smoke_passed": true,
+  "archive_wrapper_links_checked": 20
+}

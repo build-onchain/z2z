@@ -1,0 +1,554 @@
+{
+  "date": "2026-10-02",
+  "purpose": "Pre-server-independent-redesign snapshot; not current authority, source original retained with only relocated links rebased",
+  "files": [
+    {
+      "source": "docs/ARCHITECTURE.md",
+      "snapshot": "docs/history/2026-10-02-pre-redesign-ARCHITECTURE.md",
+      "source_sha256": "669934c54d961be849a3b8f6a90b087e7ed4d6451e494b2693ff5d95cb55a953",
+      "snapshot_sha256": "6bd560a202fbf3a5f17638a13b39c1500d99f034d814de566c1153d69edb9fe3",
+      "link_rewrites": [
+        {
+          "from": "superpowers/specs/2026-10-01-native-protocol-implementation-design.md",
+          "to": "../superpowers/specs/2026-10-01-native-protocol-implementation-design.md"
+        },
+        {
+          "from": "superpowers/plans/2026-10-01-native-protocol-implementation.md",
+          "to": "../superpowers/plans/2026-10-01-native-protocol-implementation.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "PRODUCT.md",
+          "to": "../PRODUCT.md"
+        },
+        {
+          "from": "CONSOLIDATION.md",
+          "to": "../CONSOLIDATION.md"
+        },
+        {
+          "from": "imports/kerb/README.md",
+          "to": "../imports/kerb/README.md"
+        },
+        {
+          "from": "MODULES.md",
+          "to": "../MODULES.md"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "PRODUCT.md",
+          "to": "../PRODUCT.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "SETTLEMENT-RESEARCH.md#42-positive-conflict-refund-candidate--audit-bổ-sung-2026-10-01",
+          "to": "../SETTLEMENT-RESEARCH.md#42-positive-conflict-refund-candidate--audit-bổ-sung-2026-10-01"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "MODULES.md#11-layout-đã-duyệt--frame-hiện-tại",
+          "to": "../MODULES.md#11-layout-đã-duyệt--frame-hiện-tại"
+        },
+        {
+          "from": "MODULES.md#12-core-crate-dependency-map--acyclic",
+          "to": "../MODULES.md#12-core-crate-dependency-map--acyclic"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "modules/wallet-authoring.md",
+          "to": "../modules/wallet-authoring.md"
+        },
+        {
+          "from": "modules/zcash-proofs.md",
+          "to": "../modules/zcash-proofs.md"
+        },
+        {
+          "from": "modules/destination-settlement.md",
+          "to": "../modules/destination-settlement.md"
+        },
+        {
+          "from": "modules/solver-operations.md",
+          "to": "../modules/solver-operations.md"
+        },
+        {
+          "from": "modules/client-sdk.md",
+          "to": "../modules/client-sdk.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md#31-shared-native-core",
+          "to": "../../../zoss/docs/ARCHITECTURE.md#31-shared-native-core"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "MODULES.md#12-core-crate-dependency-map--acyclic",
+          "to": "../MODULES.md#12-core-crate-dependency-map--acyclic"
+        },
+        {
+          "from": "MODULES.md#13-external-zoss-shared-core--proposed-library-reuse",
+          "to": "../MODULES.md#13-external-zoss-shared-core--proposed-library-reuse"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md#42-package-repository-and-process-map",
+          "to": "../../../zoss/docs/ARCHITECTURE.md#42-package-repository-and-process-map"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md#7-shared-library-readiness",
+          "to": "../../../zoss/docs/BLOCKERS.md#7-shared-library-readiness"
+        },
+        {
+          "from": "imports/kerb/docs/docs/superpowers/specs/2026-10-02-kerb-safety-core-design.md",
+          "to": "../imports/kerb/docs/docs/superpowers/specs/2026-10-02-kerb-safety-core-design.md"
+        },
+        {
+          "from": "imports/kerb/docs/README.md#implemented-local-safety-cores-2026-10-02",
+          "to": "../imports/kerb/docs/README.md#implemented-local-safety-cores-2026-10-02"
+        },
+        {
+          "from": "imports/kerb/docs/product/17-HYPERLIQUID-EXPANSION.md",
+          "to": "../imports/kerb/docs/product/17-HYPERLIQUID-EXPANSION.md"
+        },
+        {
+          "from": "CONSOLIDATION.md",
+          "to": "../CONSOLIDATION.md"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "SETTLEMENT-RESEARCH.md#42-positive-conflict-refund-candidate--audit-bổ-sung-2026-10-01",
+          "to": "../SETTLEMENT-RESEARCH.md#42-positive-conflict-refund-candidate--audit-bổ-sung-2026-10-01"
+        },
+        {
+          "from": "ARCHITECTURE-AUDIT.md#9-positive-conflict-alternative--không-assume-exclusion-bắt-buộc",
+          "to": "../ARCHITECTURE-AUDIT.md#9-positive-conflict-alternative--không-assume-exclusion-bắt-buộc"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "SETTLEMENT-RESEARCH.md#41-absence-branch-research-construction-exact-payment-proof-aware-escrow",
+          "to": "../SETTLEMENT-RESEARCH.md#41-absence-branch-research-construction-exact-payment-proof-aware-escrow"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "BLOCKERS.md#2-ranh-giới-zoss-và-settlement-implications",
+          "to": "../BLOCKERS.md#2-ranh-giới-zoss-và-settlement-implications"
+        },
+        {
+          "from": "SETTLEMENT-RESEARCH.md#3-refund-before-fund-recovery-component-chưa-complete-fair-exchange",
+          "to": "../SETTLEMENT-RESEARCH.md#3-refund-before-fund-recovery-component-chưa-complete-fair-exchange"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "superpowers/plans/2026-10-01-native-protocol-implementation.md",
+          "to": "../superpowers/plans/2026-10-01-native-protocol-implementation.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md#concrete-blockers-to-the-entire-protocol",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md#concrete-blockers-to-the-entire-protocol"
+        },
+        {
+          "from": "modules/zcash-proofs.md",
+          "to": "../modules/zcash-proofs.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "MODULES.md",
+          "to": "../MODULES.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md#7-shared-library-readiness",
+          "to": "../../../zoss/docs/BLOCKERS.md#7-shared-library-readiness"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md#7-shared-library-readiness",
+          "to": "../../../zoss/docs/BLOCKERS.md#7-shared-library-readiness"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "imports/kerb/docs/reviews/2026-10-02-strict-privacy-feasibility.md",
+          "to": "../imports/kerb/docs/reviews/2026-10-02-strict-privacy-feasibility.md"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "CONSOLIDATION.md",
+          "to": "../CONSOLIDATION.md"
+        },
+        {
+          "from": "MODULES.md",
+          "to": "../MODULES.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "imports/kerb/README.md",
+          "to": "../imports/kerb/README.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md#7-shared-library-readiness",
+          "to": "../../../zoss/docs/BLOCKERS.md#7-shared-library-readiness"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "PRODUCT.md",
+          "to": "../PRODUCT.md"
+        },
+        {
+          "from": "CONSOLIDATION.md",
+          "to": "../CONSOLIDATION.md"
+        }
+      ]
+    },
+    {
+      "source": "docs/MODULES.md",
+      "snapshot": "docs/history/2026-10-02-pre-redesign-MODULES.md",
+      "source_sha256": "fcf00b62f7c118e413d0cffd969b4b5ef5925db05c12d7d47f96f0cfaa378a8b",
+      "snapshot_sha256": "6ed0711deaab9b8cd2cd7df1f8b2d97cb5c99f49ba954e83494fe1292758317c",
+      "link_rewrites": [
+        {
+          "from": "superpowers/specs/2026-10-01-native-protocol-implementation-design.md",
+          "to": "../superpowers/specs/2026-10-01-native-protocol-implementation-design.md"
+        },
+        {
+          "from": "superpowers/plans/2026-10-01-native-protocol-implementation.md",
+          "to": "../superpowers/plans/2026-10-01-native-protocol-implementation.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "PRODUCT.md",
+          "to": "../PRODUCT.md"
+        },
+        {
+          "from": "CONSOLIDATION.md",
+          "to": "../CONSOLIDATION.md"
+        },
+        {
+          "from": "ARCHITECTURE.md",
+          "to": "../ARCHITECTURE.md"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "imports/kerb/README.md",
+          "to": "../imports/kerb/README.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "PRODUCT.md",
+          "to": "../PRODUCT.md"
+        },
+        {
+          "from": "modules/wallet-authoring.md",
+          "to": "../modules/wallet-authoring.md"
+        },
+        {
+          "from": "modules/zcash-proofs.md",
+          "to": "../modules/zcash-proofs.md"
+        },
+        {
+          "from": "modules/destination-settlement.md",
+          "to": "../modules/destination-settlement.md"
+        },
+        {
+          "from": "modules/destination-settlement.md",
+          "to": "../modules/destination-settlement.md"
+        },
+        {
+          "from": "modules/solver-operations.md",
+          "to": "../modules/solver-operations.md"
+        },
+        {
+          "from": "modules/client-sdk.md",
+          "to": "../modules/client-sdk.md"
+        },
+        {
+          "from": "modules/client-sdk.md",
+          "to": "../modules/client-sdk.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../zoss/docs/private_dex.md",
+          "to": "../../../zoss/docs/private_dex.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "ARCHITECTURE.md#41-market-accounting-custody-và-user-proof-intake--proposed",
+          "to": "../ARCHITECTURE.md#41-market-accounting-custody-và-user-proof-intake--proposed"
+        },
+        {
+          "from": "CONSOLIDATION.md",
+          "to": "../CONSOLIDATION.md"
+        },
+        {
+          "from": "ARCHITECTURE.md#trust-privacy",
+          "to": "../ARCHITECTURE.md#trust-privacy"
+        },
+        {
+          "from": "imports/kerb/docs/reviews/2026-10-02-strict-privacy-feasibility.md",
+          "to": "../imports/kerb/docs/reviews/2026-10-02-strict-privacy-feasibility.md"
+        },
+        {
+          "from": "ARCHITECTURE.md#41-market-accounting-custody-và-user-proof-intake--proposed",
+          "to": "../ARCHITECTURE.md#41-market-accounting-custody-và-user-proof-intake--proposed"
+        },
+        {
+          "from": "imports/kerb/docs/docs/superpowers/specs/2026-10-02-kerb-safety-core-design.md",
+          "to": "../imports/kerb/docs/docs/superpowers/specs/2026-10-02-kerb-safety-core-design.md"
+        },
+        {
+          "from": "ARCHITECTURE.md#41-market-accounting-custody-và-user-proof-intake--proposed",
+          "to": "../ARCHITECTURE.md#41-market-accounting-custody-và-user-proof-intake--proposed"
+        },
+        {
+          "from": "imports/kerb/docs/README.md#implemented-local-safety-cores-2026-10-02",
+          "to": "../imports/kerb/docs/README.md#implemented-local-safety-cores-2026-10-02"
+        },
+        {
+          "from": "ARCHITECTURE.md#product",
+          "to": "../ARCHITECTURE.md#product"
+        },
+        {
+          "from": "imports/kerb/docs/product/17-HYPERLIQUID-EXPANSION.md",
+          "to": "../imports/kerb/docs/product/17-HYPERLIQUID-EXPANSION.md"
+        },
+        {
+          "from": "ARCHITECTURE.md#41-market-accounting-custody-và-user-proof-intake--proposed",
+          "to": "../ARCHITECTURE.md#41-market-accounting-custody-và-user-proof-intake--proposed"
+        },
+        {
+          "from": "PRODUCT.md",
+          "to": "../PRODUCT.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md#31-shared-native-core",
+          "to": "../../../zoss/docs/ARCHITECTURE.md#31-shared-native-core"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md#42-package-repository-and-process-map",
+          "to": "../../../zoss/docs/ARCHITECTURE.md#42-package-repository-and-process-map"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md#7-shared-library-readiness",
+          "to": "../../../zoss/docs/BLOCKERS.md#7-shared-library-readiness"
+        },
+        {
+          "from": "CONSOLIDATION.md",
+          "to": "../CONSOLIDATION.md"
+        },
+        {
+          "from": "PRODUCT.md",
+          "to": "../PRODUCT.md"
+        },
+        {
+          "from": "imports/kerb/docs/README.md#implemented-local-safety-cores-2026-10-02",
+          "to": "../imports/kerb/docs/README.md#implemented-local-safety-cores-2026-10-02"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md#concrete-blockers-to-the-entire-protocol",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md#concrete-blockers-to-the-entire-protocol"
+        },
+        {
+          "from": "modules/zcash-proofs.md",
+          "to": "../modules/zcash-proofs.md"
+        },
+        {
+          "from": "modules/destination-settlement.md#3-allocation-và-actual-transfer-invariants",
+          "to": "../modules/destination-settlement.md#3-allocation-và-actual-transfer-invariants"
+        },
+        {
+          "from": "ARCHITECTURE.md#settlement",
+          "to": "../ARCHITECTURE.md#settlement"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "ARCHITECTURE.md#roadmap",
+          "to": "../ARCHITECTURE.md#roadmap"
+        },
+        {
+          "from": "BLOCKERS.md",
+          "to": "../BLOCKERS.md"
+        },
+        {
+          "from": "SETTLEMENT-RESEARCH.md",
+          "to": "../SETTLEMENT-RESEARCH.md"
+        },
+        {
+          "from": "SETTLEMENT-RESEARCH.md#42-positive-conflict-refund-candidate--audit-bổ-sung-2026-10-01",
+          "to": "../SETTLEMENT-RESEARCH.md#42-positive-conflict-refund-candidate--audit-bổ-sung-2026-10-01"
+        },
+        {
+          "from": "ARCHITECTURE-AUDIT.md#9-positive-conflict-alternative--không-assume-exclusion-bắt-buộc",
+          "to": "../ARCHITECTURE-AUDIT.md#9-positive-conflict-alternative--không-assume-exclusion-bắt-buộc"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "../../zoss/docs/private_dex.md",
+          "to": "../../../zoss/docs/private_dex.md"
+        },
+        {
+          "from": "NATIVE-IMPLEMENTATION-STATUS.md",
+          "to": "../NATIVE-IMPLEMENTATION-STATUS.md"
+        },
+        {
+          "from": "PRODUCT.md",
+          "to": "../PRODUCT.md"
+        },
+        {
+          "from": "CONSOLIDATION.md",
+          "to": "../CONSOLIDATION.md"
+        },
+        {
+          "from": "imports/kerb/README.md",
+          "to": "../imports/kerb/README.md"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1671 @@
+{
+  "scope": "PUBLIC_PRE_FILL2_PRESERVATION_NOT_PORTABLE_PROVER_OR_FUNDED_RECOVERY",
+  "source_archive": {
+    "path": "public-source.tar.gz",
+    "sha256": "e280603e658c50315e618b47504c9386c852ff1212b71112d86ee2c8e5127553",
+    "files": [
+      {
+        "path": "Cargo.lock",
+        "bytes": 216013,
+        "sha256": "e798be91621b502d0eb69d454088f6c5971fa421571ecb775030dd64b917de80"
+      },
+      {
+        "path": "Cargo.toml",
+        "bytes": 802,
+        "sha256": "fa1422d485484c0a8163bfa0815f3bee7057febfec8ba3c6c888ec1627c9a8b3"
+      },
+      {
+        "path": "contracts/evm/foundry.toml",
+        "bytes": 170,
+        "sha256": "ae867120e8608b84f04f2911cfc41bf6883b4b6348383cc6bd5fed60fed5d3f8"
+      },
+      {
+        "path": "contracts/evm/src/Allocation.sol",
+        "bytes": 754,
+        "sha256": "cb5616dea226c098f6a57353d4569e790e01e4358837a3a78ccc7559502c17f9"
+      },
+      {
+        "path": "contracts/evm/src/SamechainAuthority.sol",
+        "bytes": 14123,
+        "sha256": "6f99ac5e216f9a9181627c957f6603f111ec36d871b4c915c78dcdf080adee59"
+      },
+      {
+        "path": "contracts/evm/src/SamechainCodec.sol",
+        "bytes": 15373,
+        "sha256": "d4a23174920c7b4cff82196ff195cf56023c73b45be6219c2a383d0afc94fc3b"
+      },
+      {
+        "path": "contracts/evm/src/SamechainTree.sol",
+        "bytes": 3293,
+        "sha256": "16d0f0417566a9be629d896a8fa9cc8a89322a74d276d3a31df7d6aeb78e1f14"
+      },
+      {
+        "path": "contracts/evm/src/sp1/ISP1Verifier.sol",
+        "bytes": 955,
+        "sha256": "9e918032a5aa799c1319b14b013154d6a40ca6e5f2267c9f540560abd7fd7689"
+      },
+      {
+        "path": "contracts/evm/src/sp1/v6.1.0/Groth16Verifier.sol",
+        "bytes": 26771,
+        "sha256": "01ab92508b9d56556ee247c7cb6b2ebd9c17835a4618896462b2a3a8708a50bf"
+      },
+      {
+        "path": "contracts/evm/src/sp1/v6.1.0/SP1VerifierGroth16.sol",
+        "bytes": 3236,
+        "sha256": "48e1db5baca3b102242ebd88280b3689a088076688146cd0d98876f5dacb76d0"
+      },
+      {
+        "path": "contracts/evm/test/Allocation.t.sol",
+        "bytes": 2732,
+        "sha256": "5b3d031b9272f4eb707e97710cff01ab25d05693c0f313d9cf49699ec22a0ab4"
+      },
+      {
+        "path": "contracts/evm/test/SamechainAuthority.t.sol",
+        "bytes": 24473,
+        "sha256": "6de94319a36cd76249cf446c257f473adc1081ecbde2e27792d40181cebc8580"
+      },
+      {
+        "path": "contracts/evm/test/SamechainCalls.t.sol",
+        "bytes": 5292,
+        "sha256": "3ecb323852482309dc9d8cf05401e81a51fbf0c70ade94c55e68362eda2909bb"
+      },
+      {
+        "path": "contracts/evm/test/SamechainCodec.t.sol",
+        "bytes": 30445,
+        "sha256": "a6bc9420823f64de0c9881ca2d8851f845f105a612a9b42cac4b69d80b8145d8"
+      },
+      {
+        "path": "contracts/evm/test/SamechainTree.t.sol",
+        "bytes": 16525,
+        "sha256": "70249c2462d20818b8970dd0f3c1a51c3513c7e58d04c1ac21c7d3f30d4bea50"
+      },
+      {
+        "path": "contracts/evm/test/fixtures/SamechainCallVectors.sol",
+        "bytes": 30853,
+        "sha256": "7e1772ae0b7771c63ecaafda48fdc455688efdccbb9f6b801979e325273f3e2d"
+      },
+      {
+        "path": "contracts/evm/test/fixtures/SamechainNativeVectors.sol",
+        "bytes": 25116,
+        "sha256": "1bdfc14af33df77d4ca322454f9048f37bbe6162eb07e3a9ab8398aea953390b"
+      },
+      {
+        "path": "contracts/evm/test/fixtures/samechain-call-vectors.json",
+        "bytes": 72750,
+        "sha256": "4666f6bfec3e454c718afd72a231d0019558e8c41af5f3182dd304bfc2d5a8f5"
+      },
+      {
+        "path": "contracts/evm/test/fixtures/samechain-native-vectors.json",
+        "bytes": 78955,
+        "sha256": "369ac38f9de1aa7ec1c53b6563e3db7bea7da8ce5b83aafce53a4d7162cda2fb"
+      },
+      {
+        "path": "contracts/evm/test/fixtures/samechain-native-vectors.provenance.json",
+        "bytes": 640,
+        "sha256": "96cdae0d24bae44d7efadb8a3506c8921ea7e871ead90aac5be68cbe2998d0f0"
+      },
+      {
+        "path": "contracts/solana/Cargo.toml",
+        "bytes": 383,
+        "sha256": "599baf6bf256ce3f9898c3b707f644436fb27422179ee982449d6b8df63fa7b4"
+      },
+      {
+        "path": "contracts/solana/interface/Cargo.toml",
+        "bytes": 387,
+        "sha256": "36f4306aec2a744ebb462e2cf02371a05aa8b793eab65e0cd8e9c64cf52b5530"
+      },
+      {
+        "path": "contracts/solana/interface/src/lib.rs",
+        "bytes": 7631,
+        "sha256": "b4ea26b476870260c5faea912771674c8021ffb61f9539a7348514ccbd2745ab"
+      },
+      {
+        "path": "contracts/solana/interface/tests/effects.rs",
+        "bytes": 2864,
+        "sha256": "9105d83a4d3e055975f71f3d2b9cc97c49dfc8e7525528630e4aac6d73bf9598"
+      },
+      {
+        "path": "crates/chains/Cargo.toml",
+        "bytes": 622,
+        "sha256": "010249e389ba44ffe01113710f2e62f34acd1f471e47025b6ec4d859f68d5eff"
+      },
+      {
+        "path": "crates/chains/src/hypercore.rs",
+        "bytes": 29711,
+        "sha256": "1a6c48a48264f6d63151673c5ddeb066bf722e908d373ae0135f4c85bc5b5297"
+      },
+      {
+        "path": "crates/chains/src/hypercore/spot.rs",
+        "bytes": 10561,
+        "sha256": "6a0ab95b65f452383154e2884fb8d76f64ea26ba623b15c1cef1e4c76fa4f285"
+      },
+      {
+        "path": "crates/chains/src/lib.rs",
+        "bytes": 469,
+        "sha256": "aa1c8a0655ff6a2c8f55b574268bcaa887161f222478213492fa781690c97468"
+      },
+      {
+        "path": "crates/chains/src/samechain.rs",
+        "bytes": 11212,
+        "sha256": "34629966f03d6933bdad8a008b64a3aac8b30139550f1db5f43f8babe356435c"
+      },
+      {
+        "path": "crates/chains/src/samechain/history.rs",
+        "bytes": 13705,
+        "sha256": "58bd2c664d7ac7d584441f5e5b47586853b3c8c62b1acd7380ee50a0b4b2f447"
+      },
+      {
+        "path": "crates/chains/src/samechain/inspection.rs",
+        "bytes": 43293,
+        "sha256": "9b07cdb2bb8996a720bc4aa0ccc53562b7f7feb2e6c6097903bc2d995f201da2"
+      },
+      {
+        "path": "crates/chains/tests/hypercore.rs",
+        "bytes": 21498,
+        "sha256": "0a312209ce47dbd87c72d1acf5f24aa5aaa6811247da22a8f3350ca7480b9309"
+      },
+      {
+        "path": "crates/chains/tests/hypercore_spot.rs",
+        "bytes": 16362,
+        "sha256": "576d2082f0f4038f36be1ecfe1f092746de4f526f3dbe15422eeeee558b99130"
+      },
+      {
+        "path": "crates/chains/tests/samechain_calls.rs",
+        "bytes": 15900,
+        "sha256": "8fe904c5b67a25f5b3bd7e4bcf3a0778c3b2e81fc28d891fdf0d74c222bc0740"
+      },
+      {
+        "path": "crates/chains/tests/samechain_history.rs",
+        "bytes": 23400,
+        "sha256": "770de7f65e83c79bb2ff000de9fde3285e6c92b228e8adbc3906cb59c2762bcf"
+      },
+      {
+        "path": "crates/chains/tests/samechain_inspection.rs",
+        "bytes": 37661,
+        "sha256": "3e883ab40e20febc105d5b491cb5e8b464b7d789cabe390a807bc51ba4a9b76b"
+      },
+      {
+        "path": "crates/chains/tests/samechain_simulation.rs",
+        "bytes": 18420,
+        "sha256": "85b9aeeab801aab542d2f776bdf07abb68cdf37f80c222df9b71da588558ab62"
+      },
+      {
+        "path": "crates/chains/tests/support/samechain_history.rs",
+        "bytes": 5011,
+        "sha256": "5c548b8a33afc93d0e58ef545738960da6f303b9d35cff65755ed932722b01ad"
+      },
+      {
+        "path": "crates/chains/tests/support/samechain_inspection.rs",
+        "bytes": 26271,
+        "sha256": "97527b46ecaea940aea4f808d0b023ff18334fbb20c12936fd18f2ce3c95ef3a"
+      },
+      {
+        "path": "crates/proofs/Cargo.toml",
+        "bytes": 3735,
+        "sha256": "5d0fd8b00fb6b2b737ff00102e1568b5700ec55de4fdc56e039875ebd5112da7"
+      },
+      {
+        "path": "crates/proofs/examples/prove_sender.rs",
+        "bytes": 5711,
+        "sha256": "165ceec4df02072b86a3ee321db83d137e0cf2440f9fb2a2b7972e90524dff91"
+      },
+      {
+        "path": "crates/proofs/methods/legacy-joinsplit/Cargo.lock",
+        "bytes": 47803,
+        "sha256": "635949433569298a8e4674ced50fe9aa5b1e3003192fea6fa242967c92f80083"
+      },
+      {
+        "path": "crates/proofs/methods/legacy-joinsplit/Cargo.toml",
+        "bytes": 1075,
+        "sha256": "fd91f03760c720341cc735fa2d13d1c4e958f73a915fd4a4920369fb29d9191f"
+      },
+      {
+        "path": "crates/proofs/methods/legacy-joinsplit/src/main.rs",
+        "bytes": 2894,
+        "sha256": "9f75d2c9daf65c799157b4ef04cb93e3b8a4745fd85695252172a3d426776280"
+      },
+      {
+        "path": "crates/proofs/methods/nu5-crypto/.cargo/config.toml",
+        "bytes": 462,
+        "sha256": "626aee957dcc22c4b6d22db5525a68b27330ee2e295f37a7ef50ffedde9120f4"
+      },
+      {
+        "path": "crates/proofs/methods/nu5-crypto/Cargo.lock",
+        "bytes": 47901,
+        "sha256": "6cb70cd23713ac6c17817d7e139e11c68e1f3dfa1103435fee310424e038a190"
+      },
+      {
+        "path": "crates/proofs/methods/nu5-crypto/Cargo.toml",
+        "bytes": 1254,
+        "sha256": "59cc579cd6cba2001d0ed44e96248365aa70095a69bb1efb715deadb553450dd"
+      },
+      {
+        "path": "crates/proofs/methods/nu5-crypto/src/main.rs",
+        "bytes": 3655,
+        "sha256": "fef8e8cb5aa38d8ec57409ab3337a2b14766ab24b5fe594f83c0d88a81f7645d"
+      },
+      {
+        "path": "crates/proofs/methods/nu5-recovery/.cargo/config.toml",
+        "bytes": 462,
+        "sha256": "626aee957dcc22c4b6d22db5525a68b27330ee2e295f37a7ef50ffedde9120f4"
+      },
+      {
+        "path": "crates/proofs/methods/nu5-recovery/Cargo.lock",
+        "bytes": 47953,
+        "sha256": "46d2eca0b6b41d0d17b5fffe82ff4cffdce966f0453bc1c1025fef6587c19409"
+      },
+      {
+        "path": "crates/proofs/methods/nu5-recovery/Cargo.toml",
+        "bytes": 1307,
+        "sha256": "66a0686bc981571b570a8e26a3384d3e7fafbf75f5b559cb62be28216d385215"
+      },
+      {
+        "path": "crates/proofs/methods/nu5-recovery/src/main.rs",
+        "bytes": 3900,
+        "sha256": "3ed0f05f89619eff64a420371f66dc849ed377545a68a00f238307312d599c15"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-fixed/Cargo.lock",
+        "bytes": 38964,
+        "sha256": "1aee0f3b6c65bda1f4865695301230bb322d5f543a96bae2e7fc6efda3dcb318"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-fixed/Cargo.toml",
+        "bytes": 369,
+        "sha256": "f18feabda5c400a5bfcbc95bf70344c37b3d70bcc7e3f47b40b701ac72f9f99d"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-fixed/src/main.rs",
+        "bytes": 1071,
+        "sha256": "041633e8cbfc4336935324a9bba4551b8776b0bc606aff14330d23815b9f91df"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-original/Cargo.lock",
+        "bytes": 38967,
+        "sha256": "724d4a38ae689a978c44d3227583d055587dd0f13ca34a0b45c61b0fb4d6833c"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-original/Cargo.toml",
+        "bytes": 372,
+        "sha256": "051a7fde2def2b6732faa10249469a3d0d81cc742cfe8aa478c2aefd9cd19ecc"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-original/src/main.rs",
+        "bytes": 976,
+        "sha256": "9918a3e41b178c3815ce63157b7f855c8b509ffd1d75709d04c5ec30e4cbacee"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-post-nu63/Cargo.lock",
+        "bytes": 38968,
+        "sha256": "c5b2ed953e8886d4a12a932a63a4c69254fe7a1bdd427a5f61f2bdd7e838c7db"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-post-nu63/Cargo.toml",
+        "bytes": 373,
+        "sha256": "434f6e19ded71ff04ab8071769efeb36b1768b475338294fa62bf2afc64b27fe"
+      },
+      {
+        "path": "crates/proofs/methods/orchard-post-nu63/src/main.rs",
+        "bytes": 1126,
+        "sha256": "b07269663d85847a73776f0bd3bc4051bb4518c034bb44e0dc1d462e735cb333"
+      },
+      {
+        "path": "crates/proofs/methods/preparation/.cargo/config.toml",
+        "bytes": 462,
+        "sha256": "626aee957dcc22c4b6d22db5525a68b27330ee2e295f37a7ef50ffedde9120f4"
+      },
+      {
+        "path": "crates/proofs/methods/preparation/Cargo.lock",
+        "bytes": 58114,
+        "sha256": "10bc3eca98b8c194f708cdce3163bc5e4f4ace2b1b3b33fad2a46c01e6243cbb"
+      },
+      {
+        "path": "crates/proofs/methods/preparation/Cargo.toml",
+        "bytes": 736,
+        "sha256": "4ddbfaf7e75d37ad526e5c4bda89d0979955318092bcf1c841d7c4c84696a3dd"
+      },
+      {
+        "path": "crates/proofs/methods/preparation/src/main.rs",
+        "bytes": 634,
+        "sha256": "38d4d56521d696816c80b48c64e8d3fae3d2bcd3286d1cf216ca53e0d4b450cd"
+      },
+      {
+        "path": "crates/proofs/methods/samechain/Cargo.lock",
+        "bytes": 34553,
+        "sha256": "639fe519da069419e59191d7a6ee5902dae007cb8f803e8aee1e2a4f562d7cee"
+      },
+      {
+        "path": "crates/proofs/methods/samechain/Cargo.toml",
+        "bytes": 477,
+        "sha256": "782b75e677ca370bd56db9c605d667106367cdf09865ccb455c3bf17fbb2a84d"
+      },
+      {
+        "path": "crates/proofs/methods/samechain/src/bin/private_output_fixture.rs",
+        "bytes": 918,
+        "sha256": "8ed354adb20b27ba8754b31848088a8888a32d9cc23de9f363fb577bd9d2e0f8"
+      },
+      {
+        "path": "crates/proofs/methods/samechain/src/main.rs",
+        "bytes": 1878,
+        "sha256": "66b71944868d676bec948653f4e98fd93862e4d8c06e39565836251f438b2e7a"
+      },
+      {
+        "path": "crates/proofs/methods/sapling-crypto/.cargo/config.toml",
+        "bytes": 393,
+        "sha256": "e02adc44352a22a268a4d20a5f4ee95ea95a0e8938ea7048a2d1907e9d5ec7ab"
+      },
+      {
+        "path": "crates/proofs/methods/sapling-crypto/Cargo.lock",
+        "bytes": 45768,
+        "sha256": "b10eac98cd4da9b474bec9b76e3ca6043c9d1d1e7011d14d8a16b7f3b89d78a3"
+      },
+      {
+        "path": "crates/proofs/methods/sapling-crypto/Cargo.toml",
+        "bytes": 1006,
+        "sha256": "b24f9eeb4892a9ed58fa78fb8cfd694c49434074a6d35269f2fd90870efcf9ef"
+      },
+      {
+        "path": "crates/proofs/methods/sapling-crypto/src/main.rs",
+        "bytes": 1881,
+        "sha256": "e746805b7b2f2046e7ff4f5222c0acc6904aaedd85d97866d9561cc4d95f1bf8"
+      },
+      {
+        "path": "crates/proofs/methods/sender/Cargo.lock",
+        "bytes": 36696,
+        "sha256": "df9665750702042df4c50fe4e61ce6c0149dac13e34b37287abe46f36f05ece1"
+      },
+      {
+        "path": "crates/proofs/methods/sender/Cargo.toml",
+        "bytes": 360,
+        "sha256": "61167f407b9401f7a2514ef972b288e72c6c35021e339bd17b279e4f7f1bce2b"
+      },
+      {
+        "path": "crates/proofs/methods/sender/src/main.rs",
+        "bytes": 384,
+        "sha256": "ae9af39c9efa491b121f9f2296198da07219b702bce789120e1f776948d7daa9"
+      },
+      {
+        "path": "crates/proofs/methods/sender/src/relation.rs",
+        "bytes": 6635,
+        "sha256": "cd11a69bc05a1001e4aec0ec6c09fe23100c97dcddee34cb1497259cae8a754e"
+      },
+      {
+        "path": "crates/proofs/methods/sprout-groth16/Cargo.lock",
+        "bytes": 27935,
+        "sha256": "87dc752876bbf54ad0af0282629b43ccb25024e40ab12f4bbd41da33601f1450"
+      },
+      {
+        "path": "crates/proofs/methods/sprout-groth16/Cargo.toml",
+        "bytes": 694,
+        "sha256": "641669c9fc941a31b2924a761c6c7ed941e41142934c257d4b43b514e55ade8e"
+      },
+      {
+        "path": "crates/proofs/methods/sprout-groth16/src/main.rs",
+        "bytes": 1632,
+        "sha256": "7a703b3b3625b121462162a4370000dac47affaff86b57fa4a4c07bca2407e05"
+      },
+      {
+        "path": "crates/proofs/methods/sprout-ledger/.cargo/config.toml",
+        "bytes": 462,
+        "sha256": "626aee957dcc22c4b6d22db5525a68b27330ee2e295f37a7ef50ffedde9120f4"
+      },
+      {
+        "path": "crates/proofs/methods/sprout-ledger/Cargo.lock",
+        "bytes": 55249,
+        "sha256": "750e0c3664be8f615eb43ee3b40dcbea7f7f75a54f3ca513d5a74c90eea8223e"
+      },
+      {
+        "path": "crates/proofs/methods/sprout-ledger/Cargo.toml",
+        "bytes": 1685,
+        "sha256": "ece23cc88f7953c72cc133401205da81718ca6374c448681ed646cf2c3a013cc"
+      },
+      {
+        "path": "crates/proofs/methods/sprout-ledger/src/main.rs",
+        "bytes": 5113,
+        "sha256": "5dc7bcc5deacb7ee25a71e62fef66977a39341b573c2bd992d7b1dce1112c53b"
+      },
+      {
+        "path": "crates/proofs/methods/sprout/Cargo.lock",
+        "bytes": 26617,
+        "sha256": "8e978032d6b14c2dfdbb3b6f24243571d8428689d8cb7b60539d5e0b71f923f6"
+      },
+      {
+        "path": "crates/proofs/methods/sprout/Cargo.toml",
+        "bytes": 497,
+        "sha256": "b1682b1515603e0896babf96a127325610b0274ea2498adb2d270107b508a0cc"
+      },
+      {
+        "path": "crates/proofs/methods/sprout/src/main.rs",
+        "bytes": 1814,
+        "sha256": "94506cfcf425f27fc621d99a8f880de4575f575909523e0bf16d062e439cec70"
+      },
+      {
+        "path": "crates/proofs/src/artifacts.rs",
+        "bytes": 51448,
+        "sha256": "06358c67d248cb02cd679bccdf09600e4b29b3b44603307e7e94ed1589e370d6"
+      },
+      {
+        "path": "crates/proofs/src/chain_history.rs",
+        "bytes": 47822,
+        "sha256": "c90b983e89b38bff4d0a1c0bd29b39aa9aa2a4e60d832129201172a145b94959"
+      },
+      {
+        "path": "crates/proofs/src/genesis.rs",
+        "bytes": 13455,
+        "sha256": "acab20e68684976dbf9d85743df9e0d2066f3447a1a82311568897e96299ed5a"
+      },
+      {
+        "path": "crates/proofs/src/header.rs",
+        "bytes": 22114,
+        "sha256": "bddc89e38d225358d6a8021f944d0f8c59971ecb1fe65ff2f68f9071d851e03c"
+      },
+      {
+        "path": "crates/proofs/src/history.rs",
+        "bytes": 13359,
+        "sha256": "7080ccbf96c6d44455c86bf86b5893e5472e461b7cbcc59601bf2f1edfbb3c61"
+      },
+      {
+        "path": "crates/proofs/src/ledger.rs",
+        "bytes": 138622,
+        "sha256": "028ff9ccfac541a56ccc84eb930971071fd6693f0dd906147d8c8d907973ae15"
+      },
+      {
+        "path": "crates/proofs/src/ledger_tests.rs",
+        "bytes": 631106,
+        "sha256": "01c606dff4c7c82b038f5273459ff44c783bff7de0c2e912dc750925cfe14158"
+      },
+      {
+        "path": "crates/proofs/src/legacy_joinsplit.rs",
+        "bytes": 39960,
+        "sha256": "518c6b2ee92431fe38c1a4974065e3df354edb435c8acef3bf3298ff1407aa1b"
+      },
+      {
+        "path": "crates/proofs/src/legacy_sighash.rs",
+        "bytes": 11734,
+        "sha256": "0d5c6c1a076ccf1dcd8b48496db5526102474bea5641b334c1f3f32c8b775ae2"
+      },
+      {
+        "path": "crates/proofs/src/lib.rs",
+        "bytes": 1188,
+        "sha256": "95cba66bc71e1627beb4a77893ab3aa208c70029f1bb404ee5b78b4e01888470"
+      },
+      {
+        "path": "crates/proofs/src/orchard_original.rs",
+        "bytes": 29211,
+        "sha256": "e32a8544df6b79a02142d32e9456923b7e77b88ed889776061d572bd95cf6877"
+      },
+      {
+        "path": "crates/proofs/src/overwinter.rs",
+        "bytes": 11435,
+        "sha256": "dfb06172e2936b8c96ba5b390dd8bcc88c848a16f5679c15704ec5f7b1a7684f"
+      },
+      {
+        "path": "crates/proofs/src/post_nu5_body.rs",
+        "bytes": 20079,
+        "sha256": "43d5a7e1753098c3d65ee935f0a861e7ba34d51f4c81fdec0c35b648cb7b1d17"
+      },
+      {
+        "path": "crates/proofs/src/preparation.rs",
+        "bytes": 43970,
+        "sha256": "4edac26645be78270dd0f2e4be334a42739234d32408e8c43d5d6f3d739fcbbd"
+      },
+      {
+        "path": "crates/proofs/src/raw_v5.rs",
+        "bytes": 34154,
+        "sha256": "82502321ec6fc25fbc1b9d93131a0297b075dee7908273db4f0958160c3730d1"
+      },
+      {
+        "path": "crates/proofs/src/samechain.rs",
+        "bytes": 40635,
+        "sha256": "499cba49178ede031f0fce8e1851aacf19a607b9a4729b422ab062ead284a663"
+      },
+      {
+        "path": "crates/proofs/src/samechain/creation.rs",
+        "bytes": 6604,
+        "sha256": "bc005392fbef8b27dbae945b5e49ad11aa5eb97350506cc9ce163ed210b21a2a"
+      },
+      {
+        "path": "crates/proofs/src/samechain/withdrawal.rs",
+        "bytes": 8063,
+        "sha256": "74b095539344aef486fa9458b98e721466d529eeb74b3f91420c2586fb382c3a"
+      },
+      {
+        "path": "crates/proofs/src/sapling_coinbase.rs",
+        "bytes": 9874,
+        "sha256": "48510e0f5a244dc52e6773f189e22bd9626d718ef7ecb059db73d4b43901d59e"
+      },
+      {
+        "path": "crates/proofs/src/sapling_crypto.rs",
+        "bytes": 28056,
+        "sha256": "9afa0e62d000d843045fee8ee1165b29d212d5bcea1c79f646158070f9cdbc34"
+      },
+      {
+        "path": "crates/proofs/src/sapling_sighash.rs",
+        "bytes": 7268,
+        "sha256": "efdb718f29d0e2513e82c0a70369584505d261e3ca9d2f009a434fa347612371"
+      },
+      {
+        "path": "crates/proofs/src/sprout.rs",
+        "bytes": 23610,
+        "sha256": "65f96e0730c81816858e848791639c3dcd845d9fd6eaba30c773502ef45d2a8c"
+      },
+      {
+        "path": "crates/proofs/src/sprout_groth16.rs",
+        "bytes": 14807,
+        "sha256": "c077b4fce0f0b1e0b8b0c9d3a0e5a5e626a8aeaae144473a0b534042af555158"
+      },
+      {
+        "path": "crates/proofs/src/zip244.rs",
+        "bytes": 17117,
+        "sha256": "ead776fce2c3fa5a06207aa55f90f27e0401fb141141ce128ba3ba8f77cd93b7"
+      },
+      {
+        "path": "crates/proofs/tests/chain_history.rs",
+        "bytes": 6250,
+        "sha256": "aa464c1c7f093f5f81f2269a2751b4e3acdf3c823deffcbb542c723a5662e6e2"
+      },
+      {
+        "path": "crates/proofs/tests/chain_history_v2.rs",
+        "bytes": 11439,
+        "sha256": "1f04b39a4c373a30063bcba1e5d390f0a2ed930e4a6b2f22a530fb251513018e"
+      },
+      {
+        "path": "crates/proofs/tests/chain_history_v3.rs",
+        "bytes": 10124,
+        "sha256": "50f722a5337eb2203afccd204c9b3a169ddac48133576b780d4e5e5dd999df20"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/history-v1-primary.rs",
+        "bytes": 96473,
+        "sha256": "c2e17e3d4aa9242842e4d534213e7742d21f82db2666b45ec2ec7f3c66ba54fb"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/history-v2-primary.rs",
+        "bytes": 130239,
+        "sha256": "521e9e02ce2c8a5efcbee13132e74687a50525058ebcb7231ef209155a28d2e9"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/history-v3-primary.rs",
+        "bytes": 164988,
+        "sha256": "963fb00784ed93e7ec4b14360afc01a28406fcea26228c23699a39dd940cbcc3"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/ironwood-testnet-4410000.rs",
+        "bytes": 12827,
+        "sha256": "15b8d1120839af43f4fda813441e1beb28b2c66af6271555baa6864a1fede7d1"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/legacy-joinsplit-mainnet-396.rs",
+        "bytes": 6069,
+        "sha256": "65d8021f9d2d0437cd3e41735afbb1ba66ba2dbe089d5975e1a24edb54663ec9"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/legacy-sighash.rs",
+        "bytes": 8980,
+        "sha256": "d20909613ab0ea7e33fb884990dc479324ac01222e1766a2dca907b2510bf146"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/legacy-signed.rs",
+        "bytes": 3472,
+        "sha256": "35f31807b08ec33b1e1f393b6ea185262f8a1351e5a4a5d09edf29bab58acbd7"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/overwinter-mined.rs",
+        "bytes": 7107,
+        "sha256": "12cd7632b988893b4b1830a780d85eca1c5949e9ed99cd3f02b5164170727606"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/overwinter-offsets.rs",
+        "bytes": 1056,
+        "sha256": "e1badbdd059e8bea0d826227663ecb4ebd87c75957f1895dbca6651666fd85c3"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/overwinter-primary.rs",
+        "bytes": 63896,
+        "sha256": "0c60c80b115462da07e06260130ad8253daf244cc022f5690ef56f6fb4c6f0f6"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/sapling-mainnet-419202.rs",
+        "bytes": 7000,
+        "sha256": "2d2ba4879db1c433e324c776a844ed66cf1d317553f0240f285d26a34529c43a"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/sapling-sighash-primary.rs",
+        "bytes": 111166,
+        "sha256": "6d7ace06a83b2b0cab1cd5af54341f3c092234331f27101e12812ab53a7bf43c"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/sprout-groth16-testnet-280003.rs",
+        "bytes": 6642,
+        "sha256": "966477c6a0537af2387f2dd184d417617b948b47f8351c322fc9bf4d8476d8f4"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/sprout-ledger-primary.rs",
+        "bytes": 28776,
+        "sha256": "58af0577d68d40e7adea49cae8133df57b2a1243c2043087ad4a68e0048d80f7"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/sprout-positive.rs",
+        "bytes": 7658,
+        "sha256": "b4bd5b30e741818f2e2fc159faea9c07b68d1ef18f26074a44f39149b18f936b"
+      },
+      {
+        "path": "crates/proofs/tests/fixtures/zip244-primary.rs",
+        "bytes": 147275,
+        "sha256": "5913c26066ff8ea75d7f53acb9177dab4353e269b045c676433fda5d5a279bf6"
+      },
+      {
+        "path": "crates/proofs/tests/genesis.rs",
+        "bytes": 8197,
+        "sha256": "7d66d039c2b8285b9bdc1032881ea57ca6e91396836c4a365fff56d262c3110d"
+      },
+      {
+        "path": "crates/proofs/tests/guest_output_privacy.rs",
+        "bytes": 4967,
+        "sha256": "a59a858dcb9295d76c1e8d4ceb916767b62a135ec58eafed64a9a1cfbd87fcbe"
+      },
+      {
+        "path": "crates/proofs/tests/header.rs",
+        "bytes": 7665,
+        "sha256": "43bbdedb892d72cda0b36dc9eddc277b560135ee8f19ee00499aab632bb8db4c"
+      },
+      {
+        "path": "crates/proofs/tests/history.rs",
+        "bytes": 10880,
+        "sha256": "41598d1ddbf02b0ad07a002e009be0c5bc28e5f87c3a3a0bb7c4cb245fe30569"
+      },
+      {
+        "path": "crates/proofs/tests/ledger.rs",
+        "bytes": 11925,
+        "sha256": "d48eed071d2c725df226a26d5ceee388eae18971177cd2124aab1ca015521ef2"
+      },
+      {
+        "path": "crates/proofs/tests/legacy_joinsplit.rs",
+        "bytes": 9883,
+        "sha256": "e68336ff1685ccca0a245c8f6ae288b8b308685fea2706303b7273a8fc2cdc9d"
+      },
+      {
+        "path": "crates/proofs/tests/legacy_sighash.rs",
+        "bytes": 17317,
+        "sha256": "194c9e45014cdd56d25ad1ed3c9538f7719e72d0fae2235e8bab064325fa6af7"
+      },
+      {
+        "path": "crates/proofs/tests/nu5_body.rs",
+        "bytes": 37757,
+        "sha256": "11d13e31674cf15968143c1830860b216167e10c5fdcfac9bef520956ab264b4"
+      },
+      {
+        "path": "crates/proofs/tests/nu5_sapling_recovery.rs",
+        "bytes": 2374,
+        "sha256": "587d4526314b3e0c07c7fa97167e92ecb5ed90b7c86813af29a691510a9937bd"
+      },
+      {
+        "path": "crates/proofs/tests/nu61_source.rs",
+        "bytes": 23742,
+        "sha256": "591eb58c8cc8236885a19856dadc1628cb321e9b56c17c1c08b7c46d910421d7"
+      },
+      {
+        "path": "crates/proofs/tests/nu62_source.rs",
+        "bytes": 28907,
+        "sha256": "e9f84deec048684707f2204c4701887395c04155369d1c8201572df310862be5"
+      },
+      {
+        "path": "crates/proofs/tests/nu63_source.rs",
+        "bytes": 51019,
+        "sha256": "3d0c7a3ad8bd26095b0c02387ed7a9cd8f2e5dafec1e93c92258e8d7b756de01"
+      },
+      {
+        "path": "crates/proofs/tests/nu6_source.rs",
+        "bytes": 11223,
+        "sha256": "08d25c99b76d93beb808f6d9a4655e2469c77f167e48791f01c27cb2f9d3588a"
+      },
+      {
+        "path": "crates/proofs/tests/orchard_coinbase.rs",
+        "bytes": 14321,
+        "sha256": "43614fbca669bec28d882274a6838bd20b47c986f36102b8259bccf65a010d17"
+      },
+      {
+        "path": "crates/proofs/tests/orchard_original.rs",
+        "bytes": 15867,
+        "sha256": "10c6749cd985b5b7dd54c3c2b717b8564efc30a578e9d998a044a0518b796ac0"
+      },
+      {
+        "path": "crates/proofs/tests/orchard_post_nu63.rs",
+        "bytes": 10085,
+        "sha256": "c59b7899516c258319961e7e12837bb0c0c73406735bbfcf01ec1c8d8d38d147"
+      },
+      {
+        "path": "crates/proofs/tests/overwinter.rs",
+        "bytes": 16036,
+        "sha256": "8c981e6dedab4f5b82ba9bac28c202b299d054200b48c97cdab92ddbe06a43c4"
+      },
+      {
+        "path": "crates/proofs/tests/owner_artifacts.rs",
+        "bytes": 32787,
+        "sha256": "6bbee7664a66bc9866dad562b7a00bba93e060eba9f03dd746fc462921b2775d"
+      },
+      {
+        "path": "crates/proofs/tests/preparation.rs",
+        "bytes": 59120,
+        "sha256": "99a01e949d4267541e188dbcc460536088acdf688a2ad5279b0bd2484a1ace22"
+      },
+      {
+        "path": "crates/proofs/tests/raw_v5.rs",
+        "bytes": 41881,
+        "sha256": "a3e994c214e301060c27e2b3a3a5ca6333c2084de47014f3562c9ad1edb1f23a"
+      },
+      {
+        "path": "crates/proofs/tests/samechain.rs",
+        "bytes": 31638,
+        "sha256": "57f95a45b55e9372d4144c47dfe6b808a2ac8ef9a7778687d4691625cb8361f8"
+      },
+      {
+        "path": "crates/proofs/tests/samechain_creation.rs",
+        "bytes": 18573,
+        "sha256": "f670907cb4a61fc1d1bd350f7c65e3f4910f9026c58f59fb43b438f213ed3ee4"
+      },
+      {
+        "path": "crates/proofs/tests/samechain_preconsent.rs",
+        "bytes": 22824,
+        "sha256": "e4ce5a1a88627ec80cae86583831548b14006e5caa8484005de70216aec598c3"
+      },
+      {
+        "path": "crates/proofs/tests/samechain_tree.rs",
+        "bytes": 8404,
+        "sha256": "947e6cc7a69010e64c41c421ab7ac428e24b7dece62aa102ee7b587f8f0e8050"
+      },
+      {
+        "path": "crates/proofs/tests/samechain_withdrawal.rs",
+        "bytes": 14442,
+        "sha256": "0a33813dc299ffd06007c35ca6f883984f8ea8c641ba0254c5e77303cb946c3b"
+      },
+      {
+        "path": "crates/proofs/tests/sapling_coinbase.rs",
+        "bytes": 32496,
+        "sha256": "f326860a27f6974d8bf70b2b4a8986d7cda955e72f5794c50e12b8b0a96c383c"
+      },
+      {
+        "path": "crates/proofs/tests/sapling_crypto.rs",
+        "bytes": 16825,
+        "sha256": "4f90a3c852794691ffb8672067e9158e68bc22160b4b013b60314c6162bd5c1b"
+      },
+      {
+        "path": "crates/proofs/tests/sapling_joinsplit.rs",
+        "bytes": 11406,
+        "sha256": "b85964497f20e24d0b77f3d1b92f19025d1c64a4f1707a4bf466dbe779f81a37"
+      },
+      {
+        "path": "crates/proofs/tests/sapling_sighash.rs",
+        "bytes": 28896,
+        "sha256": "03d60692213e23cb6addd70cd4ff16ea9b040d5bde899076823239f8fe23d97c"
+      },
+      {
+        "path": "crates/proofs/tests/sapling_v5.rs",
+        "bytes": 2916,
+        "sha256": "1d553f4aa7102f9df4c65e4d7cab0dfc51d00dcd0d2bec90e64cde1c87fbc60a"
+      },
+      {
+        "path": "crates/proofs/tests/sprout.rs",
+        "bytes": 4657,
+        "sha256": "6aac1636f5b120ac975ea7e87172eb3256000b3690e5d926e7eb18ee83955a30"
+      },
+      {
+        "path": "crates/proofs/tests/sprout_groth16.rs",
+        "bytes": 9322,
+        "sha256": "fcb9da897867fd8dcd06603b172508974a2bc8eadadc65eecae7c2ee4cc10ddd"
+      },
+      {
+        "path": "crates/proofs/tests/support/note_creation.rs",
+        "bytes": 3436,
+        "sha256": "fa7c6825222ad1fcdfdb1407a49d2c8ede3eda956fff8edbdcf82c8e791ce61b"
+      },
+      {
+        "path": "crates/proofs/tests/support/ordinary_withdrawal.rs",
+        "bytes": 6564,
+        "sha256": "1678b8ddf71e0394288ee9de15fe1e694cb370c9af9815443b1d94fd6e5a87ea"
+      },
+      {
+        "path": "crates/proofs/tests/support/samechain.rs",
+        "bytes": 10953,
+        "sha256": "c013bd61b23f09b14f8e6db9c9142461357b59ac1dbd86891e041c1c1f67118f"
+      },
+      {
+        "path": "crates/proofs/tests/zip244.rs",
+        "bytes": 23801,
+        "sha256": "5069b3cad907f13ca85afd884bbe2d8b0c54e68385ee0c4e697e7f6976c3891d"
+      },
+      {
+        "path": "crates/protocol/Cargo.toml",
+        "bytes": 1527,
+        "sha256": "246a8524679040bdbfa6c683b7333ac8dbbfa49e3733c18da62957363c0015bd"
+      },
+      {
+        "path": "crates/protocol/examples/allocation.rs",
+        "bytes": 1130,
+        "sha256": "345ec06e1c28b9795cb5e32884f5bbc5cb61cea2755bd46816eff6f03d5d3235"
+      },
+      {
+        "path": "crates/protocol/src/allocation.rs",
+        "bytes": 2083,
+        "sha256": "c06f8c38e6e915652509aebe8d303e74aa6acba13e5068c21a220674059a236f"
+      },
+      {
+        "path": "crates/protocol/src/amount.rs",
+        "bytes": 2318,
+        "sha256": "dc38f9431208a956a465737d5b2aedd75394954085b0a70da3b49985429c93a2"
+      },
+      {
+        "path": "crates/protocol/src/context.rs",
+        "bytes": 27029,
+        "sha256": "fe99f769e09c31dac6e40ec981c6f98c7c47628560af385bdcaa3f815bbc168b"
+      },
+      {
+        "path": "crates/protocol/src/lib.rs",
+        "bytes": 1387,
+        "sha256": "52242f360745a3b180025b2a09f6f5cd35bfb689b97f885a98e49c2d1784b476"
+      },
+      {
+        "path": "crates/protocol/src/market/domain.rs",
+        "bytes": 5922,
+        "sha256": "c6bd57275c7d2a09f63eab0df8a536892abfba837495a358990efa58795f94f9"
+      },
+      {
+        "path": "crates/protocol/src/market/mod.rs",
+        "bytes": 6234,
+        "sha256": "d7403cd02bab9ab78c876e36224893c94495ddbdddbe8b7d9bd2ff83d5edd8c7"
+      },
+      {
+        "path": "crates/protocol/src/market/policy.rs",
+        "bytes": 18752,
+        "sha256": "012e2f6daa72fec7065bcb112ce9f60766aa93b3e410c74d8e4db2b0845fadd1"
+      },
+      {
+        "path": "crates/protocol/src/market/records.rs",
+        "bytes": 28070,
+        "sha256": "1e632b621be35f77405ac0fe16a949db08929bb948791f2a4f1b481aed2efb24"
+      },
+      {
+        "path": "crates/protocol/src/samechain.rs",
+        "bytes": 48163,
+        "sha256": "3df9e7e364f87d313e398f2dd19e7670d18e84094e0c6aa6754a3a159d9ad38e"
+      },
+      {
+        "path": "crates/protocol/src/samechain/creation.rs",
+        "bytes": 10400,
+        "sha256": "735b85b0bc3df48b7975fc0278c92922cfb961441907e2c81031fdb4ccc2bed2"
+      },
+      {
+        "path": "crates/protocol/src/samechain/tree.rs",
+        "bytes": 12340,
+        "sha256": "52fa8999916dd944bab28c25418883041819ef52dd067ca1547c61ac400848f3"
+      },
+      {
+        "path": "crates/protocol/src/samechain/withdrawal.rs",
+        "bytes": 9481,
+        "sha256": "445fcc4d273a501e83873d1b9994806fa5352e4e66a50fb2f578589a24ca7849"
+      },
+      {
+        "path": "crates/protocol/tests/allocation.rs",
+        "bytes": 4156,
+        "sha256": "b4d6eaf7d11ee5fcca1889f6c270e15bffe13aacaa2b4f296ae65a11f9874062"
+      },
+      {
+        "path": "crates/protocol/tests/context.rs",
+        "bytes": 12503,
+        "sha256": "ad0087b5a597770d308fd2294eceaf4bc4aa94ab4dddf6aedf7fa9827de2555c"
+      },
+      {
+        "path": "crates/protocol/tests/market_contracts.rs",
+        "bytes": 27838,
+        "sha256": "81e48c8df137c98df2d05cdcf44cdb7e4a8c348511f4e3143b88b68adab862d3"
+      },
+      {
+        "path": "crates/protocol/tests/samechain.rs",
+        "bytes": 25055,
+        "sha256": "2ff759c9f7c069d1a63ab7d157ca2005bededfe5a4aa3487dbdcbbed6d04ce7e"
+      },
+      {
+        "path": "crates/protocol/tests/samechain_creation.rs",
+        "bytes": 21683,
+        "sha256": "39e32d8199f9572ae4b3b67fe54017ecf4cf5dd0967a7edd840ff06561d24e26"
+      },
+      {
+        "path": "crates/protocol/tests/samechain_tree.rs",
+        "bytes": 5938,
+        "sha256": "8a74c4816b3db21fbf87dccd2f9c014a05bdfcace861c91b9872a5bb8e69b1c0"
+      },
+      {
+        "path": "crates/protocol/tests/samechain_withdrawal.rs",
+        "bytes": 16998,
+        "sha256": "aad6f44137684148b09962a695a30c79592dcce2b4254fb5868d13307942097f"
+      },
+      {
+        "path": "crates/protocol/tests/semantic_commitments.rs",
+        "bytes": 25838,
+        "sha256": "0625882503f4bd5dcccc2bd46094a6b1a1d2c015d1e3daae1942290eebe0cb32"
+      },
+      {
+        "path": "crates/runtime/Cargo.toml",
+        "bytes": 4768,
+        "sha256": "200de3e3ab4120397a813c897d5edf9002417975166c543e9541c48f9a562d91"
+      },
+      {
+        "path": "crates/runtime/examples/acquire_source.rs",
+        "bytes": 2182,
+        "sha256": "9b50a7015af0e32aaa0c3de908623c9b769865463dea503a84a874b476345bb4"
+      },
+      {
+        "path": "crates/runtime/examples/inventory.rs",
+        "bytes": 3735,
+        "sha256": "a709a151602d1e11f17d0882dc8ad53591d3c00c4e76d49b1a076e5a5704588c"
+      },
+      {
+        "path": "crates/runtime/examples/market_postgres_restart.rs",
+        "bytes": 19769,
+        "sha256": "e6084118c45b5f0bfb9f16dd84ef77fee25b4071271d5fdfbde47b748913769b"
+      },
+      {
+        "path": "crates/runtime/examples/owner_creation_qualification.rs",
+        "bytes": 27826,
+        "sha256": "dd441d90a3177d086d430809d6da9e3cbd25e0acf8c3acf72282fdaa632cdc24"
+      },
+      {
+        "path": "crates/runtime/examples/owner_worker_smoke.rs",
+        "bytes": 17894,
+        "sha256": "445a0371d69672dc0529389161982e54f374e6072d416234c8255e874141356b"
+      },
+      {
+        "path": "crates/runtime/migrations/inventory/0001_inventory.sql",
+        "bytes": 2258,
+        "sha256": "d9c9c92ff6fadce98a9df91d83d0a4caff35fe8dfeb9f041e9b8ee46241fc39a"
+      },
+      {
+        "path": "crates/runtime/migrations/market/0001_safety.sql",
+        "bytes": 8028,
+        "sha256": "33c0397a75af5082fa7d195931c732c047b444f2a568426323676e9dddcd0917"
+      },
+      {
+        "path": "crates/runtime/migrations/market/0002_target_authorizations.sql",
+        "bytes": 1559,
+        "sha256": "47cdd9c2c256c5d5777e41427a10d7e4b3074542c91e0ed60af8ded77fef2b3c"
+      },
+      {
+        "path": "crates/runtime/migrations/market/0003_target_state.sql",
+        "bytes": 374,
+        "sha256": "61e4541e16c7b8f9f62cf862d4de14c92abe360c04d24db29778dd29b65a3ea9"
+      },
+      {
+        "path": "crates/runtime/migrations/market/0004_native_conflicts.sql",
+        "bytes": 354,
+        "sha256": "22ffe447896f40e59dfbbd4c147a7cdc4e3da98ebe76284c68de513d4bc66710"
+      },
+      {
+        "path": "crates/runtime/migrations/market/0005_target_lifecycle.sql",
+        "bytes": 433,
+        "sha256": "17edecc9f04b220f9e69b621ae6fd5fb1b0658a6895a2777b1504672566619db"
+      },
+      {
+        "path": "crates/runtime/migrations/market/0006_shared_epoch.sql",
+        "bytes": 390,
+        "sha256": "803ef75a1051020e135e333805136e0e5ce1afdf3c46dc8f87cb55e621e62899"
+      },
+      {
+        "path": "crates/runtime/migrations/market/0007_shared_allocation_result.sql",
+        "bytes": 87,
+        "sha256": "1b4819566a25b789c08e95b9625ed33e66a6e89313886894b1110188afb1c80b"
+      },
+      {
+        "path": "crates/runtime/migrations/market/0008_physical_inventory.sql",
+        "bytes": 2316,
+        "sha256": "5ee5cbaefdd48a683561bac37c0df5e5ad1d6b9047348ccf0ec636a146684882"
+      },
+      {
+        "path": "crates/runtime/src/bin/z2z-node.rs",
+        "bytes": 181,
+        "sha256": "ec0e9f571feb6eee3ae52d85af1f20b73556909ab82ea8e252adbccdb4ce6e73"
+      },
+      {
+        "path": "crates/runtime/src/custody.rs",
+        "bytes": 25001,
+        "sha256": "36a9083d15b3f759ea2d6ee839013987ec69b9cc9ab1d01dc2212f39fab203b5"
+      },
+      {
+        "path": "crates/runtime/src/database.rs",
+        "bytes": 42549,
+        "sha256": "c3c8820ecbe61d52e9dc7d4e48db1e949d313e5aae1c433c4c83e87ad478e4c8"
+      },
+      {
+        "path": "crates/runtime/src/hypercore.rs",
+        "bytes": 16730,
+        "sha256": "5cd14fd907087e541224d5269579df8f622e6ee99177813e45cb851b2639c66c"
+      },
+      {
+        "path": "crates/runtime/src/lib.rs",
+        "bytes": 486,
+        "sha256": "3c9c09a3b3dc559f0043c2f1713c27c4d5b0784d3ae0e9fade862d7ecfc2ba98"
+      },
+      {
+        "path": "crates/runtime/src/main.rs",
+        "bytes": 3832,
+        "sha256": "2c9a2b924a04a483f815cc15fe8a8b1ba53ae4b334bba1906e0d65f32b1ce15c"
+      },
+      {
+        "path": "crates/runtime/src/market/cli.rs",
+        "bytes": 3889,
+        "sha256": "0f67fb2d1e24a7aac9bc187b66fa8337eec5f001f38457ceff0e69d63c7ab24b"
+      },
+      {
+        "path": "crates/runtime/src/market/config.rs",
+        "bytes": 3157,
+        "sha256": "b002d94d8b095ed2ace68a714e86b53fa8aa3546d4eb544e1d795cc0a772d4c0"
+      },
+      {
+        "path": "crates/runtime/src/market/coordinator.rs",
+        "bytes": 8249,
+        "sha256": "7b0bbe233062379d6fd1df08114f79b88da06a52d264a1578db09579dc491a74"
+      },
+      {
+        "path": "crates/runtime/src/market/facts.rs",
+        "bytes": 5189,
+        "sha256": "1b25686624b0066432fea85320a6818869a415a379348d6157fda759c2e70023"
+      },
+      {
+        "path": "crates/runtime/src/market/fixture.rs",
+        "bytes": 9633,
+        "sha256": "ac66319ed5b1bb0139dec8e6168e9e37afd684401cc3b6b70175c98d99716125"
+      },
+      {
+        "path": "crates/runtime/src/market/input_binding_tests.rs",
+        "bytes": 35020,
+        "sha256": "30e8f60a5a43e25e85f376c5d5aed43df15b733298ac8035c277f6d48083bdbe"
+      },
+      {
+        "path": "crates/runtime/src/market/ledger/codec.rs",
+        "bytes": 34071,
+        "sha256": "8c4adb51032ff4387fd4a87387572bc7caefb00a5645ad18d51ce8ff5e700c65"
+      },
+      {
+        "path": "crates/runtime/src/market/ledger/mod.rs",
+        "bytes": 13649,
+        "sha256": "3e5616a4e8bb2ff0bc5c0a7c3966220175049b7a89aab283141072b2cc60546a"
+      },
+      {
+        "path": "crates/runtime/src/market/ledger/replica.rs",
+        "bytes": 9236,
+        "sha256": "18e38b21dc07662d3059f5ecdf8e8f4bf5f9aeef13858912432dca56b1cf21d8"
+      },
+      {
+        "path": "crates/runtime/src/market/ledger/store.rs",
+        "bytes": 100738,
+        "sha256": "e7f5212ac5ba7be52d282f73c3f6df0f3891a2d9d88747dd06858fe436c029cd"
+      },
+      {
+        "path": "crates/runtime/src/market/ledger/target.rs",
+        "bytes": 32104,
+        "sha256": "504d6a0ea3251fe58648425aebecb00f11a31c4970e9677f4d8fc0a6d1d91adb"
+      },
+      {
+        "path": "crates/runtime/src/market/ledger/wire.rs",
+        "bytes": 3241,
+        "sha256": "72847ed5a0f18fc89d41edb84d195584714a68862c016f9d0a6702e09dbcb869"
+      },
+      {
+        "path": "crates/runtime/src/market/local.rs",
+        "bytes": 32769,
+        "sha256": "cb7d9d5d14fdeabb4b932a2e7f9aa0e1c46d4c63d9794aced7199150e6386a19"
+      },
+      {
+        "path": "crates/runtime/src/market/mod.rs",
+        "bytes": 1360,
+        "sha256": "0393a1ca6271af6f6828d713922ed0eac30c717b6a31ee0a5b3932e9f6dfc587"
+      },
+      {
+        "path": "crates/runtime/src/market/native.rs",
+        "bytes": 10691,
+        "sha256": "fd1fe535e4b09ddbd1e7e92f26e87539024b8f1f666d4d3dceee3e0c540a63ac"
+      },
+      {
+        "path": "crates/runtime/src/market/process.rs",
+        "bytes": 11990,
+        "sha256": "ff28ec64866c3dcb47000e9eaf4a383ff68dfefe4e329abf5e62d08775975ed5"
+      },
+      {
+        "path": "crates/runtime/src/market/target.rs",
+        "bytes": 10061,
+        "sha256": "a3dcaef7f9d31ad4a67a9c20fc34ae364ed290b33ecfb26f9e7ee36288fa0952"
+      },
+      {
+        "path": "crates/runtime/src/node/config.rs",
+        "bytes": 8199,
+        "sha256": "b23d034c99f789f2abb689b6aa9d7d01375914690b4eda561827e18a025bb382"
+      },
+      {
+        "path": "crates/runtime/src/node/discovery.rs",
+        "bytes": 15715,
+        "sha256": "924032cf8696b01e1ccf267d7002cf46c58f160791f54a525324eabffb1c6b5f"
+      },
+      {
+        "path": "crates/runtime/src/node/mod.rs",
+        "bytes": 3816,
+        "sha256": "50c9688e310062e8d6a60c812104d9f484c98a269b174082cf152bad85113cf7"
+      },
+      {
+        "path": "crates/runtime/src/node/network.rs",
+        "bytes": 21711,
+        "sha256": "13dc928f81c55a3fc10bcbfa42b53367aa0c59d7b7873b17af6855a5a8322e05"
+      },
+      {
+        "path": "crates/runtime/src/node/reconnect.rs",
+        "bytes": 9629,
+        "sha256": "73c14cfbacdafd85b8a5ef256a0c6b08b5ba9428877fec7d652ce20ccb088bd1"
+      },
+      {
+        "path": "crates/runtime/src/samechain.rs",
+        "bytes": 69657,
+        "sha256": "b22c1c07b04a2c62979640628b675bd9e5404d1e87619339664cc14c9c6c7ee9"
+      },
+      {
+        "path": "crates/runtime/src/samechain/history_cli.rs",
+        "bytes": 10746,
+        "sha256": "3281992890e2a55aee9ffc8fa2a4c421e00634fd7c4ebcf991cd06c85e03bc79"
+      },
+      {
+        "path": "crates/runtime/src/samechain/owner_worker.rs",
+        "bytes": 55357,
+        "sha256": "845e092b4e4c22e0a559fa348f8378742fbf71541cd891f5c3986affee9b75c9"
+      },
+      {
+        "path": "crates/runtime/src/samechain/preparation.rs",
+        "bytes": 12068,
+        "sha256": "4dd4665170f4fe8cb7e991beacda5db41f909cddceb56d392d30fd762669035d"
+      },
+      {
+        "path": "crates/runtime/src/samechain/verified_call.rs",
+        "bytes": 7317,
+        "sha256": "5cba39a0a5316af781eb6f68e6d6d5444f810ff3fa32f7f24407e18179989398"
+      },
+      {
+        "path": "crates/runtime/src/store.rs",
+        "bytes": 24356,
+        "sha256": "365bc6cf8199744b8141a3fbd332ebbdeb628f94cc38c471f68ed5978df6149e"
+      },
+      {
+        "path": "crates/runtime/tests/allocation.rs",
+        "bytes": 1124,
+        "sha256": "7b3ec5bfabf8d683a146b241a91e14e3456e0bf952abac352654036e39602508"
+      },
+      {
+        "path": "crates/runtime/tests/cli.rs",
+        "bytes": 546,
+        "sha256": "7df63bd431f2886491d4754fa77c1b6b58478a6d3ad99a8ad14af1e5f7a30c92"
+      },
+      {
+        "path": "crates/runtime/tests/custody.rs",
+        "bytes": 39768,
+        "sha256": "5fa612202bfca01301a2c1ee4f8bcbb9cb7e4959722f8dcf81e2fae9d385a7da"
+      },
+      {
+        "path": "crates/runtime/tests/hypercore.rs",
+        "bytes": 6274,
+        "sha256": "9d23a8d0c122525ed34a4981b3b5208998cfebba0bd7d5f94556fe980ac2bf01"
+      },
+      {
+        "path": "crates/runtime/tests/hypercore_spot_cli.rs",
+        "bytes": 11787,
+        "sha256": "e7ffc02b347dc48742934df9a5d42812b8eba45f758d84687ccd482d7756a8b2"
+      },
+      {
+        "path": "crates/runtime/tests/market_configuration.rs",
+        "bytes": 5065,
+        "sha256": "d5eb533c2d728501a540f55382ed36b8bc486f027c2aca694959e2b4b8813aab"
+      },
+      {
+        "path": "crates/runtime/tests/market_native_binding.rs",
+        "bytes": 4762,
+        "sha256": "2d6234a61897a96ddbc272b1d85613b277f5e8dfc6b2779c13fa6bd99fef2498"
+      },
+      {
+        "path": "crates/runtime/tests/market_native_diagnostics.rs",
+        "bytes": 3622,
+        "sha256": "36e2e35912b9beb330496cc9d38d284a00adbbaf4adcb5b1dda4da782fadbf3c"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_epochs.rs",
+        "bytes": 21273,
+        "sha256": "60413b24cbc68ad88b29444884b9a33f63064266ba395529663a728309d06602"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_lifecycle.rs",
+        "bytes": 29397,
+        "sha256": "520621d3ffdb0c8a3d853b638ccb2c2eaab03a6d0c132cdd6e335134e0592716"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_local_flow.rs",
+        "bytes": 10654,
+        "sha256": "19d23c915f80b2da114efefc6b0414db39a4bb42657cc4633c098e51db67cba6"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_native_conflicts.rs",
+        "bytes": 62093,
+        "sha256": "e5b3dd10289c7081b95824fcd667e784065caba09c3c1200a94a274db717ddd1"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_policy.rs",
+        "bytes": 13421,
+        "sha256": "02744138e1af7c78c60c9964f3dbec7688d402f059a18b64ae7c59ab0c328246"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_postgres.rs",
+        "bytes": 31915,
+        "sha256": "a1da804f5b0e133158ae7ff7dc3550991192e87a7ee45bcfcd01ab64e41df4a7"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_process_liveness.rs",
+        "bytes": 9277,
+        "sha256": "75afa408cc2b9d9d3733b32cfb57b32082cf8faad3deecc241727604f12cc548"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_replicas.rs",
+        "bytes": 17757,
+        "sha256": "b03d407ee41f7afe1d3efc05189a0a6106409de1048e940d7c726c12acf74fd7"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_solana_safety.rs",
+        "bytes": 3849,
+        "sha256": "c002fdffa6576b80890599f90b82cfb6937eaeb4ef789be65547e8af51d09f4f"
+      },
+      {
+        "path": "crates/runtime/tests/market_postgres_target.rs",
+        "bytes": 6614,
+        "sha256": "90df43558581bbf705fd2d03cbfa8afccee40443eac61bb7997534143c3b65b9"
+      },
+      {
+        "path": "crates/runtime/tests/market_support/ledger.rs",
+        "bytes": 28801,
+        "sha256": "c6d56caa523d7ac12a0628d7d440c477ebeb62c148aac1ab862a459c783e05c7"
+      },
+      {
+        "path": "crates/runtime/tests/market_support/runtime.rs",
+        "bytes": 9106,
+        "sha256": "aadd34906ab0f6573ccddca0bd5c15a684ffdfed05f4b74f7a7345ab2f9f6f8f"
+      },
+      {
+        "path": "crates/runtime/tests/node_discovery_cli.rs",
+        "bytes": 16176,
+        "sha256": "14eeaa52f47a4df37a52db58f6e972412e0c76063ffa1fe099017a04a9a24180"
+      },
+      {
+        "path": "crates/runtime/tests/node_reconnect_cli.rs",
+        "bytes": 22651,
+        "sha256": "fe1cead78deb15a12e52c2eb022937c639580aebb97abebd54ed19e5758818d0"
+      },
+      {
+        "path": "crates/runtime/tests/node_transport_cli.rs",
+        "bytes": 18591,
+        "sha256": "37ff01536f28b138e2b59831027932a8f34e69f6e444fd94fcb052b53b51b7b9"
+      },
+      {
+        "path": "crates/runtime/tests/postgres_inventory.rs",
+        "bytes": 33453,
+        "sha256": "317c2985d1acfe87697bcf98508fa0513d4adbc1833aa3d02465e23923855a51"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_call_cli.rs",
+        "bytes": 28366,
+        "sha256": "f63d4e7ef0440499900bae6a5c1a44b2adbb3bdb03a67886846519c845d87407"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_cli.rs",
+        "bytes": 27560,
+        "sha256": "fa495cac18389b308385905c3e769ac50c11299a90ab5b055ee3ccc2811316f3"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_creation_cli.rs",
+        "bytes": 16924,
+        "sha256": "66cd971973ebf18ee6561046f3948e58a0e11250c9e14fe6b03ceb282d25bd9e"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_creation_preparation.rs",
+        "bytes": 16506,
+        "sha256": "de647b12abd398c17f598bacc4dd76f24639ce4966a46186791cbe4c98272800"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_history_cli.rs",
+        "bytes": 19656,
+        "sha256": "b27750451767ad8cdef9a1fb0edda5a5932ec860f3df54f419cbf0402853bf83"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_inspection_cli.rs",
+        "bytes": 16013,
+        "sha256": "3ae76f00572218d566ddb8157442c84639bb4282722411cf7cbca8f29202e176"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_owner_artifact_cli.rs",
+        "bytes": 25272,
+        "sha256": "c8cc1be79e9cf0cef5f6b042ddff06bdc5722a6407486f33c5b1af2c2e32ceae"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_owner_program_cli.rs",
+        "bytes": 8352,
+        "sha256": "7c362d24d1a0f0c14d763b7ad6a1d3ac0fb80ec75167efe54b4a2a039f9057d8"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_preparation.rs",
+        "bytes": 23217,
+        "sha256": "38dc6e6bc453afb52051264eea6e07d9f7e524d7f372c9d60b5636c1a3ba3be9"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_simulation_cli.rs",
+        "bytes": 26714,
+        "sha256": "f964190cd34d512cc3f0a22c50e9704753e6f57fdd441c77c049236b7d37cacf"
+      },
+      {
+        "path": "crates/runtime/tests/samechain_withdrawal_cli.rs",
+        "bytes": 17810,
+        "sha256": "9229310b7e2b2f1e12df1921407c0ae1fd3b1bc72fbfa22acd763a2b91b1ee8b"
+      },
+      {
+        "path": "crates/zcash/Cargo.toml",
+        "bytes": 1337,
+        "sha256": "410d1c42abf223ccd557d69a67d6af167203b9ca40503587e9fdfade6b220e5d"
+      },
+      {
+        "path": "crates/zcash/examples/prepare.rs",
+        "bytes": 4561,
+        "sha256": "beb84d3ffede121490e31692726573415cb8be7a253e21751a00dbca3e645e87"
+      },
+      {
+        "path": "crates/zcash/src/authoring.rs",
+        "bytes": 40293,
+        "sha256": "43502c140e5c7b7b4e2de76468a580eb783ed512244f79ac8025f7c876bb7943"
+      },
+      {
+        "path": "crates/zcash/src/custody/mod.rs",
+        "bytes": 5145,
+        "sha256": "55fae16e07d466452497f6ac5a0c2142264be7e389b576618089fea12e08356e"
+      },
+      {
+        "path": "crates/zcash/src/custody/pczt.rs",
+        "bytes": 13829,
+        "sha256": "6db6bf48f1f15fe035a7ad0e38cf1aeae781766ae2f0601a695149a0d5c9e258"
+      },
+      {
+        "path": "crates/zcash/src/custody/projection.rs",
+        "bytes": 6164,
+        "sha256": "8a102db82dd76e9676c117c38ad4e930470a997cdfac933e9aba3e435f214724"
+      },
+      {
+        "path": "crates/zcash/src/lib.rs",
+        "bytes": 1520,
+        "sha256": "b4d3951888cdc5e69c3282efa70e33c65f660c933a1e9e114c5b2d2fa1e027d2"
+      },
+      {
+        "path": "crates/zcash/src/source.rs",
+        "bytes": 1046,
+        "sha256": "ad33cd23db4d0ec1fd7d2d374161aa954d928f643f53a7bcb02d179b549ffa36"
+      },
+      {
+        "path": "crates/zcash/src/validation.rs",
+        "bytes": 4775,
+        "sha256": "05a046dd04e2dc572043c92a98d8b25a974718e66d7fe26c4bfc4c050dd9f523"
+      },
+      {
+        "path": "crates/zcash/src/witness.rs",
+        "bytes": 16851,
+        "sha256": "9e2c94bfe887c18e6b3cc02a248f28dd2fd2b5f2805061adba743faa60761de3"
+      },
+      {
+        "path": "crates/zcash/tests/authoring.rs",
+        "bytes": 43475,
+        "sha256": "26d6d49480b2c61411c9f89677a99d002ad71390af0504eec60bce25c85bbfd2"
+      },
+      {
+        "path": "crates/zcash/tests/custody_pczt_effects.rs",
+        "bytes": 28732,
+        "sha256": "ccba5508585800b9799c797fd7681e6ecaf2a2d687eb29369eb8b0dd79ca3758"
+      },
+      {
+        "path": "vendor/libp2p-kad/CHANGELOG.md",
+        "bytes": 19245,
+        "sha256": "5b97228afdff08e27627ffc78f976de0ee819cc1f16528d03044b9fb9f543ac4"
+      },
+      {
+        "path": "vendor/libp2p-kad/Cargo.lock",
+        "bytes": 65355,
+        "sha256": "a9b885e52b3c0f9f9faf681481ee02d7c198f216b442485c6c1f37dc9bd3f39f"
+      },
+      {
+        "path": "vendor/libp2p-kad/Cargo.lock.upstream",
+        "bytes": 51785,
+        "sha256": "eaa4c540653a12891fea03d84a9bb3c7135a5da2c065e543c50045e3a495f1e5"
+      },
+      {
+        "path": "vendor/libp2p-kad/Cargo.toml",
+        "bytes": 3016,
+        "sha256": "296f715a8c0411b2a155001e4dd5a4ccac9a9f89fdec2438a9269f9d3daa63a8"
+      },
+      {
+        "path": "vendor/libp2p-kad/Cargo.toml.orig",
+        "bytes": 1726,
+        "sha256": "11b7107d8bfaa29c6d15091945ab46573f4fb4367d335b7c28308435b6688dc5"
+      },
+      {
+        "path": "vendor/libp2p-kad/Cargo.toml.upstream",
+        "bytes": 2736,
+        "sha256": "84b68d07c648e2441f86d1de123cd39e3001408c5237329abb8b94c0ac742e6f"
+      },
+      {
+        "path": "vendor/libp2p-kad/provenance.txt",
+        "bytes": 3738,
+        "sha256": "46f3b835eed250748f554e8ba9e5905e4d377b978e067db250addfdddb57b9ce"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/addresses.rs",
+        "bytes": 6267,
+        "sha256": "b1a36034ac9f7472b5b5b0800cf54bbbbf6fbed69d97f0383db044a15cb83a6e"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/behaviour.rs",
+        "bytes": 141204,
+        "sha256": "23794ff0e80c7e67e2c842a547c5a245d2d1de2d4724a3a23f0ebc634aa3d533"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/behaviour/test.rs",
+        "bytes": 86606,
+        "sha256": "4cbb9b97bd3d4ed4c868287347633ad3aa971d44b503b5eff7b4617577003eb2"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/bootstrap.rs",
+        "bytes": 12740,
+        "sha256": "3338da3fae3e867db1be3d18fb0a455cccc8224ab645a423c90a488d518f0d5d"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/generated/dht.proto",
+        "bytes": 2254,
+        "sha256": "57229329fba377ef6f272be5a65cbe85aa32923588c47d03fa37148ca998909d"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/generated/dht/mod.rs",
+        "bytes": 46,
+        "sha256": "b46ffabbff515cdcc5bce0fc3c54f01b3aa0525199d4f79228b0e7c13d53c5ab"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/generated/dht/pb.rs",
+        "bytes": 8875,
+        "sha256": "271411c8f98cbb3c4f743a4f34afcfe083b6adb200fe223b897cc63328f405aa"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/generated/mod.rs",
+        "bytes": 47,
+        "sha256": "a13eb2e49cb49861cdf95e51b654f993f725f1ff48f9812b21b79cb74279940b"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/handler.rs",
+        "bytes": 42707,
+        "sha256": "46474f8e0e1234f5a883814277898b472babac8c5e52d9ddb004cbf5ba8047d5"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/jobs.rs",
+        "bytes": 14969,
+        "sha256": "e8a42f7cda917f0e4cc59512cfe70c3ff326f816e2bea530acee5f6965614a6f"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/kbucket.rs",
+        "bytes": 31595,
+        "sha256": "9921cdeb6123cc77bb029b1ad30a6e7138e1ee62a27e290e1d514114bc29bbd1"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/kbucket/bucket.rs",
+        "bytes": 27993,
+        "sha256": "d79e321ca1bfcaee7adcc3ba6c3b91d8cd4a9b809a4eaa933319c9247e4f836e"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/kbucket/entry.rs",
+        "bytes": 8411,
+        "sha256": "db06a771b5064207043b620f1e51bf97fb3d9c950565e087ad419a368513e0c3"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/kbucket/key.rs",
+        "bytes": 7588,
+        "sha256": "60aba60311e1ee01335d5519790c77d524e2e7d0dcf9833072f61c315b1d349f"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/lib.rs",
+        "bytes": 4886,
+        "sha256": "dfc8494c3487018cb94bb7cfb38d734925829d5cb5f861581da721efdaec9115"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/protocol.rs",
+        "bytes": 30188,
+        "sha256": "69a2f37a16f49563b6b867f8ce3f8f48a79308daa83e4002ccf7ee1f2900e909"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/query.rs",
+        "bytes": 22019,
+        "sha256": "fb445d9b16a1307a37aaa1d471ca74daaeaf8af9dee908f123b0eb78d1637c67"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/query/peers.rs",
+        "bytes": 2862,
+        "sha256": "65c77503eca3025467a06578e292c06b8ba3678e47137638dfa451b6d00d12b2"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/query/peers/closest.rs",
+        "bytes": 32582,
+        "sha256": "9eadbefff05c9e345a5811ae1ce4e1ade1ba6c2c55038d6f4e1343b6e47bc34a"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/query/peers/closest/disjoint.rs",
+        "bytes": 36733,
+        "sha256": "809ffbaf9a85d68f8ac3d2af61e4752918d717028a79f2ce0b3a6af2afe4b52d"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/query/peers/fixed.rs",
+        "bytes": 7207,
+        "sha256": "946c6b05f39f3b23030843f5aea164c036f512ef59e8d329ce3e35b443cb3031"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/record.rs",
+        "bytes": 6196,
+        "sha256": "0f49a43c5ef9af68feb26ce961ad07636f597730f1bb64c7e7493093341764aa"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/record/store.rs",
+        "bytes": 4265,
+        "sha256": "83de301ddfd9c2d42dcf33de872008233d303f1e9247f1e4a346d6431dc549bd"
+      },
+      {
+        "path": "vendor/libp2p-kad/src/record/store/memory.rs",
+        "bytes": 11250,
+        "sha256": "0e83ea1abf79fa1bfb16d165241e818b074405177369da81e8f2fb3e5c5ffe3f"
+      },
+      {
+        "path": "vendor/libp2p-kad/tests/client_mode.rs",
+        "bytes": 7987,
+        "sha256": "611d64996e6d293d21733a7265b2d6fb52549879542854589d16ecf1bfce38db"
+      },
+      {
+        "path": "vendor/quickcheck-ext/Cargo.toml",
+        "bytes": 476,
+        "sha256": "027e382fffc255df661c32dc6deedccafe5cec043d6093b30f8bf3028df63716"
+      },
+      {
+        "path": "vendor/quickcheck-ext/Cargo.toml.orig",
+        "bytes": 241,
+        "sha256": "35c3b2f9dd9d32ef9261865184f5aaecb90d0571fa68c5782d33c9aa52d08080"
+      },
+      {
+        "path": "vendor/quickcheck-ext/provenance.txt",
+        "bytes": 1207,
+        "sha256": "2d79959a2697b88507e760b4a64818f5a3c45a60e0640a6ce564eed422772159"
+      },
+      {
+        "path": "vendor/quickcheck-ext/src/lib.rs",
+        "bytes": 1264,
+        "sha256": "4a6dd30f7afcc84e6e1c0dad0738c7bda93ac68561d80b8c00e67aaf05f42d75"
+      }
+    ]
+  },
+  "executables_and_elf": [
+    {
+      "origin": "target/debug/ziquid",
+      "path": "ziquid-native-v1",
+      "bytes": 36615672,
+      "sha256": "f8dd09aa8258b09dda79da42fa7450271214b9e2d80bf681ca5e9a2b9ed0dda6"
+    },
+    {
+      "origin": "target/release/deps/ziquid-3dd43028d1b59552",
+      "path": "ziquid-sp1-local-v1",
+      "bytes": 96038928,
+      "sha256": "43193cfea6c7f2719df9c01c9758704bd12a1bfadc83628d4c79dc190b6e9f91"
+    },
+    {
+      "origin": "target/z2z-samechain-tree-20261004/samechain-tree.elf",
+      "path": "samechain-tree.elf",
+      "bytes": 429776,
+      "sha256": "6cbd653f6dca5e23e884952ca0d7259aebd258be06591dbc1438e3c49e4a40b2"
+    },
+    {
+      "origin": "target/z2z-owner-qualification-20261006/owner.elf",
+      "path": "owner.elf",
+      "bytes": 429776,
+      "sha256": "6cbd653f6dca5e23e884952ca0d7259aebd258be06591dbc1438e3c49e4a40b2"
+    }
+  ],
+  "public_metadata": [
+    {
+      "origin": "target/release/.fingerprint/ziquid-runtime-3dd43028d1b59552/bin-ziquid.json",
+      "path": "bin-ziquid.json",
+      "sha256": "bc62b5deec9056b992c7ccbf758192437a100bf77c9b6efe4a96c580de1c85fa"
+    },
+    {
+      "origin": "target/release/deps/ziquid-3dd43028d1b59552.d",
+      "path": "ziquid-3dd43028d1b59552.d",
+      "sha256": "b0bf46d6d96b7e62c9dedc5269e8254136f0374c0db6f07caa8fdc7905dfebef"
+    },
+    {
+      "origin": "target/ziquid-public-setup/v6.1.0/acquisition.json",
+      "path": "acquisition.json",
+      "sha256": "96add727c5807749737ec1afc691c451f6b96e0ed15c945492d5ad2eded5293b"
+    }
+  ],
+  "checks": {
+    "copied_binary_help": "both_exit_0",
+    "elf_identity": "copied_current_all_mode_tree_and_qualification_ELFs_match_documented_SHA"
+  },
+  "external_dependencies": {
+    "sibling_source": "../zoss/crates/zcash and workspace/protocol/build/proto source NOT copied/frozen",
+    "setup_bytes": "target/ziquid-public-setup/v6.1.0 retained in place, full archive target/ziquid-public-setup-download; existing acquired-object TOFU except independently pinned VK; no fresh multi-gigabyte hash",
+    "registry_toolchains": "existing Cargo registry/toolchains/native libraries NOT bundled",
+    "release_source_mapping": "retained SP1-local release executable is an earlier independently named build, not claimed built from this source snapshot"
+  },
+  "not_qualified": [
+    "independent source-to-ELF mapping",
+    "ceremony assurance",
+    "genuine wrapped proof",
+    "actual deployment/backing/funds",
+    "owner private capability completeness",
+    "cold recovery/portable whole build"
+  ],
+  "private_data": "No owner witness/custody/key/temp/SQL contents included"
+}

@@ -1,0 +1,33 @@
+[package]
+name = "ziquid-nu5-crypto-guest"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+sp1-zkvm = "=6.8.1"
+sha2 = { version = "=0.10.9", features = ["compress"] }
+corez = { version = "=0.1.1", features = ["std"] }
+zcash_primitives = { version = "=0.30.1", default-features = false, features = ["std", "temporary-zcashd"] }
+zcash_protocol = { version = "=0.10.5", default-features = false, features = ["std"] }
+zcash_transparent = { version = "=0.10.0", default-features = false, features = ["std"] }
+zcash_encoding = "=0.4.0"
+zcash_note_encryption = "=0.4.2"
+sapling-crypto = { version = "=0.7.0", default-features = false, features = ["std", "temporary-zcashd"] }
+orchard = { version = "=0.15.5", default-features = false, features = ["std", "circuit"] }
+blake2b_simd = "=1.0.4"
+bellman = { version = "=0.14.0", default-features = false, features = ["groth16"] }
+bls12_381 = { version = "=0.8.0", default-features = false, features = ["groups", "pairings", "alloc"] }
+jubjub = { version = "=0.10.0", default-features = false, features = ["alloc"] }
+group = { version = "=0.13.0", default-features = false }
+zeroize = "=1.9.0"
+
+[profile.dev]
+debug = 0
+incremental = false
+
+[profile.test]
+debug = 0
+incremental = false

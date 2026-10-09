@@ -1,0 +1,780 @@
+{
+  "schema_version": 1,
+  "import_date": "2026-10-02",
+  "source_root": "/home/harry-riddle/dev/github.com/build-onchain/kerb",
+  "destination_root": "docs/imports/kerb",
+  "scope": "Standalone documentation only; source unchanged, implementation not imported",
+  "roots": [
+    "docs",
+    "zolana-review-2026-09-29",
+    "zolana-research-2026-09-30"
+  ],
+  "files": [
+    {
+      "source_relative_path": "docs/00-CANONICAL.md",
+      "source_sha256": "bf1cc565190eb2220552b0e1d5ebac6f5b873f6b5819d032dc5390a907d5693e",
+      "import_sha256": "b531c1ca3fea28bee549f05c7965d443f61962f20a8562075574bcf847ddce82",
+      "source_bytes": 29180,
+      "import_bytes": 29216,
+      "link_rewrites": [
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md#41-implementation-map",
+          "to": "../../../../../zoss/docs/ARCHITECTURE.md#41-implementation-map"
+        },
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/README.md",
+      "source_sha256": "3133d68650be7518a7d287dd89190eacf639707f9a9ecae9210d13d7d5366dc2",
+      "import_sha256": "a6e5a4739642882f1e62d8afb39c256d8a3eb50884fb31bb33069b0257f36955",
+      "source_bytes": 17622,
+      "import_bytes": 17649,
+      "link_rewrites": [
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/architecture/03-SYSTEM-ARCHITECTURE.md",
+      "source_sha256": "9d16d589ae85f48e6bcde6bb70015695063d6bd44abe04f2276e86be108bd570",
+      "import_sha256": "571288375fe25fac8c2e29fcef43f9e07e8604087a08d814afb08f3176269967",
+      "source_bytes": 19692,
+      "import_bytes": 19719,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md#31-shared-native-core",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md#31-shared-native-core"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/architecture/04-ONCHAIN-PROGRAM-DESIGN.md",
+      "source_sha256": "084a8d1b476f343bb88fbe5ced2c961a8221af30662aa92daca33d50adc62368",
+      "import_sha256": "084a8d1b476f343bb88fbe5ced2c961a8221af30662aa92daca33d50adc62368",
+      "source_bytes": 25375,
+      "import_bytes": 25375,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/architecture/05-TOKEN-2022-ISSUER-INTEGRATION.md",
+      "source_sha256": "58359706033edc57d2620c924bdb1740a3288ac0e39bc75cb8cb0d1dd52d9c1b",
+      "import_sha256": "58359706033edc57d2620c924bdb1740a3288ac0e39bc75cb8cb0d1dd52d9c1b",
+      "source_bytes": 17956,
+      "import_bytes": 17956,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/architecture/06-OFFCHAIN-SERVICES.md",
+      "source_sha256": "2db6561b38b455d890da34e9e779585a114a73b1f7af3c73ac51207b72c058c0",
+      "import_sha256": "a957df0564d21415f251a6b59fb1f1ab2af04677e3afc86dd842f106a67a92e2",
+      "source_bytes": 24303,
+      "import_bytes": 24330,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/business/10-MARKET-AND-COMPETITION.md",
+      "source_sha256": "49b747f63b2b49cfe99ef7935d7e93e210db90514a63cdc563c9f86faec92fb3",
+      "import_sha256": "49b747f63b2b49cfe99ef7935d7e93e210db90514a63cdc563c9f86faec92fb3",
+      "source_bytes": 17557,
+      "import_bytes": 17557,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/business/11-BUSINESS-MODEL.md",
+      "source_sha256": "803b4d7fb5bda377b88ed060aed7efc6295f26bc39f7f3787c8bbca51843a07c",
+      "import_sha256": "803b4d7fb5bda377b88ed060aed7efc6295f26bc39f7f3787c8bbca51843a07c",
+      "source_bytes": 18036,
+      "import_bytes": 18036,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/business/12-GTM-AND-VALIDATION.md",
+      "source_sha256": "c5989f463672bf04a8a9e78b6c850c1372315a4d04d6120d6f7f22f6835befd2",
+      "import_sha256": "c5989f463672bf04a8a9e78b6c850c1372315a4d04d6120d6f7f22f6835befd2",
+      "source_bytes": 24804,
+      "import_bytes": 24804,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/docs/superpowers/plans/2026-10-02-kerb-safety-core-build.md",
+      "source_sha256": "33485f4db5018af7c0f86e428d22dac3ec4c8ebb58db9f01b493b4d3a7d64deb",
+      "import_sha256": "33485f4db5018af7c0f86e428d22dac3ec4c8ebb58db9f01b493b4d3a7d64deb",
+      "source_bytes": 32466,
+      "import_bytes": 32466,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/docs/superpowers/specs/2026-09-29-kerb-zolana-design.md",
+      "source_sha256": "0956f4101e48a31059f11c8ef7f28824b4b1fee631c8fbfc1052424b232c692a",
+      "import_sha256": "96b0605ea9bfb794b70a4b917e24591ad54d1055e2a53e86588720ea2d712b99",
+      "source_bytes": 40938,
+      "import_bytes": 40992,
+      "link_rewrites": [
+        {
+          "from": "../../../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/kerb.md",
+          "to": "../../../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/kerb.md",
+          "to": "../../../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/ARCHITECTURE.md#5-interface-proposed",
+          "to": "../../../../../../../../zoss/docs/ARCHITECTURE.md#5-interface-proposed"
+        },
+        {
+          "from": "../../../../../zoss/docs/kerb.md",
+          "to": "../../../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/docs/superpowers/specs/2026-10-01-kerb-design-review.md",
+      "source_sha256": "f189d1a66e87b88a83fdd35f014b99d2dee8bd652831481c68adf16f901ba0d1",
+      "import_sha256": "906fa9a7ee9e450839ef984247876d1c01d445afac8aa0efac861796295fddfa",
+      "source_bytes": 10044,
+      "import_bytes": 10062,
+      "link_rewrites": [
+        {
+          "from": "../../../../../zoss/docs/kerb.md",
+          "to": "../../../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/docs/superpowers/specs/2026-10-01-kerb-production-demo-design.md",
+      "source_sha256": "3c2902a6f546e5cfb80d259747ce5a6ea551790317c4621c8a0364991d5f4280",
+      "import_sha256": "f069b41b6ac2bd29e1a5653cb86f6b2ff3ff364e5e394e8091b86b9855943859",
+      "source_bytes": 62249,
+      "import_bytes": 62330,
+      "link_rewrites": [
+        {
+          "from": "../../../../../zoss/docs/kerb.md",
+          "to": "../../../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/kerb.md",
+          "to": "../../../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/kerb.md",
+          "to": "../../../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/kerb.md",
+          "to": "../../../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/docs/superpowers/specs/2026-10-02-kerb-safety-core-design.md",
+      "source_sha256": "5fe4bb3756b3ad176dc3937edad6ebf1445340f33f7d66cbb9dd29cbf4c6822d",
+      "import_sha256": "5fe4bb3756b3ad176dc3937edad6ebf1445340f33f7d66cbb9dd29cbf4c6822d",
+      "source_bytes": 19069,
+      "import_bytes": 19069,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/legal/09-REGULATORY-AND-LEGAL.md",
+      "source_sha256": "4bb81f53734ab280624b820daeaf2d998f01cc72d70a6dfc3b27235fc3b3aefe",
+      "import_sha256": "4bb81f53734ab280624b820daeaf2d998f01cc72d70a6dfc3b27235fc3b3aefe",
+      "source_bytes": 13635,
+      "import_bytes": 13635,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/mechanism/01-MECHANISM-SPEC.md",
+      "source_sha256": "45d6ac1e98225ac95a5db20c2958e6746040881b94ed1a1d2afcd6d6fe70829f",
+      "import_sha256": "45d6ac1e98225ac95a5db20c2958e6746040881b94ed1a1d2afcd6d6fe70829f",
+      "source_bytes": 23703,
+      "import_bytes": 23703,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/mechanism/02-MARKET-DESIGN-RATIONALE.md",
+      "source_sha256": "5a23b402df151657697491d72df477ff7d3936e4823460eb70407ebf2de5c8f2",
+      "import_sha256": "5a23b402df151657697491d72df477ff7d3936e4823460eb70407ebf2de5c8f2",
+      "source_bytes": 12572,
+      "import_bytes": 12572,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/pitch/13-PITCH-NARRATIVE.md",
+      "source_sha256": "100c95fffd724eb5333223354d80b4096fcf65505e8f6e3564769d6354db8495",
+      "import_sha256": "100c95fffd724eb5333223354d80b4096fcf65505e8f6e3564769d6354db8495",
+      "source_bytes": 14446,
+      "import_bytes": 14446,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/pitch/14-JUDGE-RED-FLAG-AUDIT.md",
+      "source_sha256": "7326dddba9a652e1cbc33f5aba3ae6956e09bd8ab8228f7259394ed6d71945f6",
+      "import_sha256": "7326dddba9a652e1cbc33f5aba3ae6956e09bd8ab8228f7259394ed6d71945f6",
+      "source_bytes": 20994,
+      "import_bytes": 20994,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/product/15-HACKATHON-PLAN.md",
+      "source_sha256": "d63100aad6bf3efe2d0f14ab035f09be9a7db9ab525fc987dcf3937a2b7f30aa",
+      "import_sha256": "d63100aad6bf3efe2d0f14ab035f09be9a7db9ab525fc987dcf3937a2b7f30aa",
+      "source_bytes": 21405,
+      "import_bytes": 21405,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/product/16-ROADMAP-AND-DECISIONS.md",
+      "source_sha256": "a59b6e38189833d05248731ca20a25a70de995c4be99886b641eca0bf5d25dfc",
+      "import_sha256": "58488997e4eda21ad7826414563266dd962ffbf0786f3ee19d576fd2bfc7721e",
+      "source_bytes": 38601,
+      "import_bytes": 38628,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/product/17-HYPERLIQUID-EXPANSION.md",
+      "source_sha256": "9b5f9562c462c6d689dcf51c37e401b30a119009defa6d883e38f7c40cb36669",
+      "import_sha256": "9b5f9562c462c6d689dcf51c37e401b30a119009defa6d883e38f7c40cb36669",
+      "source_bytes": 27411,
+      "import_bytes": 27411,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/reviews/2026-10-02-strict-privacy-feasibility.md",
+      "source_sha256": "1cfb611e4da8290b12672b89db33b04d04f4a34d4d670ce9ba5ead13914f69c0",
+      "import_sha256": "1cfb611e4da8290b12672b89db33b04d04f4a34d4d670ce9ba5ead13914f69c0",
+      "source_bytes": 8348,
+      "import_bytes": 8348,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/reviews/2026-10-02-zolana-concept-and-actors.md",
+      "source_sha256": "3cabe7c787abe7a3ca3f13e60a4ef8be5ac5d9196be2882500a0e3d02c4e5447",
+      "import_sha256": "3cabe7c787abe7a3ca3f13e60a4ef8be5ac5d9196be2882500a0e3d02c4e5447",
+      "source_bytes": 13502,
+      "import_bytes": 13502,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/reviews/2026-10-02-zoss-kerb-overview.md",
+      "source_sha256": "54e5fa69e1fe7bc8f407aa570eda6417bde22da8d936da60aa13a5ff67d0f8ac",
+      "import_sha256": "8859dae7717b9c227eb38906c57a9b96bace6f4eee82b0f70081c912dfb86a1d",
+      "source_bytes": 22033,
+      "import_bytes": 22114,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/README.md",
+          "to": "../../../../../../zoss/docs/README.md"
+        },
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/private_dex.md",
+          "to": "../../../../../../zoss/docs/private_dex.md"
+        },
+        {
+          "from": "../../../zoss/docs/reviews/2026-10-01-zoss-readiness-review.html",
+          "to": "../../../../../../zoss/docs/reviews/2026-10-01-zoss-readiness-review.html"
+        },
+        {
+          "from": "../../../zoss/docs/reviews/2026-10-01-implementation-system-prompt.txt",
+          "to": "../../../../../../zoss/docs/reviews/2026-10-01-implementation-system-prompt.txt"
+        },
+        {
+          "from": "../../../zoss/docs/superpowers/specs/2026-10-01-zoss-product-build-design.md",
+          "to": "../../../../../../zoss/docs/superpowers/specs/2026-10-01-zoss-product-build-design.md"
+        },
+        {
+          "from": "../../../zoss/docs/superpowers/plans/2026-10-01-zoss-product-build.md",
+          "to": "../../../../../../zoss/docs/superpowers/plans/2026-10-01-zoss-product-build.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/security/07-THREAT-MODEL.md",
+      "source_sha256": "8a487b0bb981e0ece1c121d60de382df0495e081f08b6f685229550d19bc5484",
+      "import_sha256": "c35bfdb0ddf9fa928ce3bb4916b08a9b29368557043d072107ad145c2d3cd43c",
+      "source_bytes": 28905,
+      "import_bytes": 28932,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/security/08-TEST-AND-VERIFICATION-PLAN.md",
+      "source_sha256": "33b7021258b048639597f9f678003721360fa6dd95e9ae2fd1a78e914568d34a",
+      "import_sha256": "b2de978fcdaf8b55a41408d0cb9b5f5aca4ac7ad75e80f71cdf06b1ea5fa4b9b",
+      "source_bytes": 28813,
+      "import_bytes": 28831,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "docs/sources/notion/idea-bank-row-5.md",
+      "source_sha256": "222429a43a21e0d7596c9b4a79a3f19790043940611ff1f99e5d5549bdf18562",
+      "import_sha256": "222429a43a21e0d7596c9b4a79a3f19790043940611ff1f99e5d5549bdf18562",
+      "source_bytes": 2942,
+      "import_bytes": 2942,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "docs/sources/x/status-2038643299221729462.md",
+      "source_sha256": "af77b4f487ffe55a37c6cdd2b944078b340a68641302adefa0ec5f7906c7cf02",
+      "import_sha256": "af77b4f487ffe55a37c6cdd2b944078b340a68641302adefa0ec5f7906c7cf02",
+      "source_bytes": 14005,
+      "import_bytes": 14005,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-research-2026-09-30/README.md",
+      "source_sha256": "81e62dd42ef524358c4ff95b44113d6caa8cdb68a9e81fa30edcefd313493fe7",
+      "import_sha256": "d6d6700346ceb54b50b2f3d0e46f9dc38851876cfe8d77b68c52f4612ceac958",
+      "source_bytes": 29868,
+      "import_bytes": 29886,
+      "link_rewrites": [
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../zoss/docs/ARCHITECTURE.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-research-2026-09-30/business-legal.md",
+      "source_sha256": "c47e77c88bdd4c0cd80ad48d018f9fda2b507ad42d365780f589deea2f91309f",
+      "import_sha256": "c47e77c88bdd4c0cd80ad48d018f9fda2b507ad42d365780f589deea2f91309f",
+      "source_bytes": 41118,
+      "import_bytes": 41118,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-research-2026-09-30/evidence-scope.md",
+      "source_sha256": "661da98f0f8009fe0c92882f6cfff248308db2b3c13001cee03e792b1351829a",
+      "import_sha256": "661da98f0f8009fe0c92882f6cfff248308db2b3c13001cee03e792b1351829a",
+      "source_bytes": 5963,
+      "import_bytes": 5963,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-research-2026-09-30/inventory.md",
+      "source_sha256": "8ea4787c43800b4788b36b1f69b02bc4321bbeb7b18abd38c6231d9fd3a0ac74",
+      "import_sha256": "8ea4787c43800b4788b36b1f69b02bc4321bbeb7b18abd38c6231d9fd3a0ac74",
+      "source_bytes": 11337,
+      "import_bytes": 11337,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-research-2026-09-30/privacy-admission.md",
+      "source_sha256": "7252ef21cd666d0948c437ea8675d2b5030e49118ec1611372bb56de0388ba60",
+      "import_sha256": "03c5a627fca1a7fc2b251e54555855bb3842733e14cd2824c11d8d74f88b12b4",
+      "source_bytes": 14736,
+      "import_bytes": 14754,
+      "link_rewrites": [
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../zoss/docs/ARCHITECTURE.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-research-2026-09-30/protocol-custody.md",
+      "source_sha256": "1b75286ad0c90f0e49353016912dd421c8c0614cd54daa236680154a44fa275a",
+      "import_sha256": "1b75286ad0c90f0e49353016912dd421c8c0614cd54daa236680154a44fa275a",
+      "source_bytes": 39812,
+      "import_bytes": 39812,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/00-CANONICAL.md",
+      "source_sha256": "c1b35b43607d80fe8d7831594852634b3c533083c43dc3d2d5735b4880c6f027",
+      "import_sha256": "c12315470933db86faa08e359daab78feddd05f63eb02f2da20e83fb6b20b9af",
+      "source_bytes": 20933,
+      "import_bytes": 20978,
+      "link_rewrites": [
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../zoss/docs/ARCHITECTURE.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/README.md",
+      "source_sha256": "418783d17d37fd27127ec9fae5874051f14853cfdaea2344ebfaf9680a1af0db",
+      "import_sha256": "db4356c3e3a0c2db44b8439ca1dfc1975ed4b8fa0916f8e3a0bee6a91c185f84",
+      "source_bytes": 12316,
+      "import_bytes": 12343,
+      "link_rewrites": [
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../zoss/docs/kerb.md",
+          "to": "../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/architecture/03-SYSTEM-ARCHITECTURE.md",
+      "source_sha256": "4997a482e3a3056c7a8c476aecc0fc24b45f15a170d3774ab424010c93e3a996",
+      "import_sha256": "05545d95f5ecea5ba6e85b890fc3685513b9687f1d7cb94fed73c05ea63ed5e6",
+      "source_bytes": 21909,
+      "import_bytes": 21927,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/architecture/04-ONCHAIN-PROGRAM-DESIGN.md",
+      "source_sha256": "56e70bf5e3fbf8db17e701fa21a2ef6aa75045fcbe73ad935a62cbd84a0c517a",
+      "import_sha256": "56e70bf5e3fbf8db17e701fa21a2ef6aa75045fcbe73ad935a62cbd84a0c517a",
+      "source_bytes": 26428,
+      "import_bytes": 26428,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/architecture/05-TOKEN-2022-ISSUER-INTEGRATION.md",
+      "source_sha256": "c372b3781247fa30241447acc8ebf08e05e5ac220a1d8d74cce784f65b1fb885",
+      "import_sha256": "c372b3781247fa30241447acc8ebf08e05e5ac220a1d8d74cce784f65b1fb885",
+      "source_bytes": 14584,
+      "import_bytes": 14584,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/architecture/06-OFFCHAIN-SERVICES.md",
+      "source_sha256": "96d74feb254646d0b77598db304008974eccf7044a693d3457aecb640a65e4c1",
+      "import_sha256": "80e25c0ad59e4c7ea2cb7549b99ea42c5d965bbc0111d226bea3893f2ede5195",
+      "source_bytes": 37426,
+      "import_bytes": 37453,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md#52-private-observation-và-public-receipt",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md#52-private-observation-và-public-receipt"
+        },
+        {
+          "from": "../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../zoss/docs/BLOCKERS.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/business/10-MARKET-AND-COMPETITION.md",
+      "source_sha256": "86752e747b46afa75fc483e244a941c24b3a67340f13381692034b719f931ed5",
+      "import_sha256": "86752e747b46afa75fc483e244a941c24b3a67340f13381692034b719f931ed5",
+      "source_bytes": 10144,
+      "import_bytes": 10144,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/business/11-BUSINESS-MODEL.md",
+      "source_sha256": "90021fcd66e953b11849f06add056143b21942cade0e918093000f1d86686208",
+      "import_sha256": "90021fcd66e953b11849f06add056143b21942cade0e918093000f1d86686208",
+      "source_bytes": 7910,
+      "import_bytes": 7910,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/business/12-GTM-AND-VALIDATION.md",
+      "source_sha256": "c8e12a9c9fefff35bf2ed24ce758235af72ccb438791f13fa5bc5dc3e188f57e",
+      "import_sha256": "c8e12a9c9fefff35bf2ed24ce758235af72ccb438791f13fa5bc5dc3e188f57e",
+      "source_bytes": 11393,
+      "import_bytes": 11393,
+      "link_rewrites": []
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/legal/09-REGULATORY-AND-LEGAL.md",
+      "source_sha256": "ce428822d07ce1d32216163b90ab4b5907b74f3227382736244a57f545ced056",
+      "import_sha256": "a6bb22584c3939d4a7f43665a3c1bcff2da83d3a614d329eaa403fbbbb85cd25",
+      "source_bytes": 17048,
+      "import_bytes": 17057,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/mechanism/01-MECHANISM-SPEC.md",
+      "source_sha256": "67186c92068c9d0fffa59351d3730def4602bb1710460ebb09891550c501453b",
+      "import_sha256": "e6380561d378b7aa5622046a64e258e3e06f5614855359d50d1b0e0feec220dd",
+      "source_bytes": 22015,
+      "import_bytes": 22024,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/mechanism/02-MARKET-DESIGN-RATIONALE.md",
+      "source_sha256": "d7646808ff0911612a9e01f58d4b9d287a4af7fb4958db292baeff922168b8d4",
+      "import_sha256": "08ba302fd9ec73c577aa03b795369c361c906fba51c83add04f25c25342e4bf1",
+      "source_bytes": 17599,
+      "import_bytes": 17608,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/pitch/13-PITCH-NARRATIVE.md",
+      "source_sha256": "cb8b7b7d0645de4d89527e7a73bdbf8a87a25b2e3397f045561b6e83d0da803c",
+      "import_sha256": "91004b2459b5db3526370b48f4b0d86de932d15310cb5ad20a9d59558fe65c5c",
+      "source_bytes": 9807,
+      "import_bytes": 9816,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/pitch/14-JUDGE-RED-FLAG-AUDIT.md",
+      "source_sha256": "b656034e914b35371b9f449cf192d3b1edeeca8ee26e1d861761784977d974bd",
+      "import_sha256": "0716b207e55efe3247f753e5f4020b489f2cc6021edd09735a86e0f8fcf0a9d0",
+      "source_bytes": 10481,
+      "import_bytes": 10490,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/product/15-HACKATHON-PLAN.md",
+      "source_sha256": "b40df2aee229c02939f8dec17c49a57e908802613117ca89909183ff5bf85eaf",
+      "import_sha256": "673a9877b0eae68543728cd39b2552e67a53d62ccfac0fb8ec018b7642e05285",
+      "source_bytes": 10816,
+      "import_bytes": 10825,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/product/16-ROADMAP-AND-DECISIONS.md",
+      "source_sha256": "4457c31ebd5c286d573bf2ed7f453584a16db4a744222be3359b23c6c3b98b3b",
+      "import_sha256": "eb18af37f12c77729d7d70e46e458ac1fa2011df82f230e292d1df640b7c183e",
+      "source_bytes": 27628,
+      "import_bytes": 27664,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/security/07-THREAT-MODEL.md",
+      "source_sha256": "87d71150de1f05b248a9dad9602e61c7d55556499fbe2f73dc0f961a20d13ec0",
+      "import_sha256": "1e29926aeaa5e59598802bf139a31a98e67d7c867b9a54275fe5ecadb876a696",
+      "source_bytes": 26645,
+      "import_bytes": 26663,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/ARCHITECTURE.md",
+          "to": "../../../../../../zoss/docs/ARCHITECTURE.md"
+        }
+      ]
+    },
+    {
+      "source_relative_path": "zolana-review-2026-09-29/security/08-TEST-AND-VERIFICATION-PLAN.md",
+      "source_sha256": "8f006d48689be7b5f8801e87630a46d7a345f2e9da1db78150be4ddb1d3410ba",
+      "import_sha256": "25efb83cdd0bca33a344cd58e271bd7e887bbcd3dbbd58b2fefa5dc2e893e137",
+      "source_bytes": 34918,
+      "import_bytes": 34945,
+      "link_rewrites": [
+        {
+          "from": "../../../zoss/docs/BLOCKERS.md",
+          "to": "../../../../../../zoss/docs/BLOCKERS.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        },
+        {
+          "from": "../../../zoss/docs/kerb.md",
+          "to": "../../../../../../zoss/docs/kerb.md"
+        }
+      ]
+    }
+  ]
+}

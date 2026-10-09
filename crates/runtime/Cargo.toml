@@ -1,0 +1,150 @@
+[package]
+name = "ziquid-runtime"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+ziquid-protocol = { path = "../protocol", features = ["market-host"] }
+primitive-types.workspace = true
+ziquid-zcash = { path = "../zcash" }
+ziquid-proofs = { path = "../proofs" }
+ziquid-chains = { path = "../chains" }
+zcash_protocol = { version = "=0.10.5", default-features = false, features = ["std", "local-consensus"] }
+chacha20poly1305 = "=0.10.1"
+zeroize = "=1.9.0"
+# Route-1a fresh-J DKG ceremony (kinds 10-12) driven over the session wire.
+# Primitives-only crate; the node uses it behind an explicit opt-in flag.
+ziquid-threshold = { path = "../threshold" }
+subtle = "=2.6.1"
+rand_core = { version = "=0.6.4", features = ["getrandom"] }
+orchard = { version = "=0.15.5", default-features = false, features = ["std", "circuit"] }
+zcash_primitives = { version = "=0.30.1", default-features = false, features = ["std", "non-standard-fees"] }
+ziquid-solana-interface = { path = "../../contracts/solana/interface" }
+sqlx = { version = "=0.8.6", default-features = false, features = ["runtime-tokio", "tls-rustls-ring-webpki", "postgres", "migrate"] }
+tokio = { version = "1.48.0", features = ["rt", "macros", "sync", "time", "process", "io-util", "io-std", "net", "signal"] }
+ed25519-dalek = "=2.2.0"
+sha2.workspace = true
+getrandom = "=0.3.4"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+url = "2"
+pczt = { version = "=0.9.3", default-features = false, features = ["std", "zcp-builder"] }
+incrementalmerkletree = { version = "=0.8.2", default-features = false, features = ["legacy-api"] }
+rand_chacha = "=0.3.1"
+futures = { version = "0.3", default-features = false, features = ["std", "async-await"] }
+futures-util = { version = "0.3", default-features = false, features = ["std"] }
+async-trait = "=0.1.92"
+sp1-primitives = { version = "=6.8.1", default-features = false, optional = true }
+libp2p = { version = "=0.56.0", default-features = false, features = ["tokio", "tcp", "noise", "yamux", "ping", "identify", "macros", "ed25519", "kad", "request-response"] }
+tracing = { version = "=0.1.44", default-features = false, features = ["std"], optional = true }
+log = { version = "=0.4.34", default-features = false, features = ["std"], optional = true }
+
+[features]
+sp1-execute = ["ziquid-proofs/sp1-execute", "dep:sp1-primitives"]
+sp1-local = ["sp1-execute", "ziquid-proofs/sp1-local", "tokio/rt-multi-thread", "dep:tracing", "dep:log"]
+postgres-tests = []
+
+[[test]]
+name = "samechain_release"
+path = "tests/samechain_release.rs"
+required-features = ["sp1-local"]
+
+[[test]]
+name = "samechain_journal_postgres"
+path = "tests/samechain_journal_postgres.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "postgres_inventory"
+path = "tests/postgres_inventory.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_epochs"
+path = "tests/market_postgres_epochs.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_lifecycle"
+path = "tests/market_postgres_lifecycle.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_native_conflicts"
+path = "tests/market_postgres_native_conflicts.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_policy"
+path = "tests/market_postgres_policy.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_postgres"
+path = "tests/market_postgres_postgres.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_replicas"
+path = "tests/market_postgres_replicas.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_target"
+path = "tests/market_postgres_target.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_local_flow"
+path = "tests/market_postgres_local_flow.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_process_liveness"
+path = "tests/market_postgres_process_liveness.rs"
+required-features = ["postgres-tests"]
+
+[[test]]
+name = "market_postgres_solana_safety"
+path = "tests/market_postgres_solana_safety.rs"
+required-features = ["postgres-tests"]
+
+[[example]]
+name = "inventory"
+path = "examples/inventory.rs"
+required-features = ["postgres-tests"]
+
+[[example]]
+name = "market_postgres_restart"
+path = "examples/market_postgres_restart.rs"
+required-features = ["postgres-tests"]
+
+[[example]]
+name = "owner_creation_qualification"
+path = "examples/owner_creation_qualification.rs"
+required-features = ["sp1-local"]
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rustix = { version = "=1.1.5", default-features = false, features = ["std", "fs", "process", "pipe", "termios", "event"] }
+
+[dev-dependencies]
+tempfile = "3"
+rand_chacha = "=0.3.1"
+incrementalmerkletree = "=0.8.2"
+pczt = { version = "=0.9.3", default-features = false, features = ["std", "zcp-builder", "io-finalizer", "prover", "signer", "tx-extractor"] }
+ed25519-dalek = { version = "=2.2.0", features = ["rand_core"] }
+tracing = { version = "=0.1.44", default-features = false, features = ["std"] }
+tracing-subscriber = { version = "=0.3.23", default-features = false, features = ["fmt", "registry"] }
+
+[[bin]]
+name = "ziquid"
+path = "src/main.rs"
+
+[[bin]]
+name = "z2z-node"
+path = "src/bin/z2z-node.rs"
+
+[lints]
+workspace = true

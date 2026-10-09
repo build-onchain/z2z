@@ -1,0 +1,16 @@
+[package]
+name = "ziquid-threshold"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+# Route-1a fresh-J 2-of-2 threshold machinery. Exact pins match the resolved
+# lock cohort (reddsa 0.5.2 ciphersuite wraps frost-core 3.0.0).
+reddsa = { version = "=0.5.2", default-features = false, features = ["std", "frost"] }
+frost-rerandomized = { version = "=3.0.0", default-features = false, features = ["serialization"] }
+rand_core = { version = "=0.6.4", features = ["getrandom"] }
+zeroize = "=1.9.0"
+
+[lints]
+workspace = true

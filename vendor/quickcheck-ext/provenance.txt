@@ -1,0 +1,9 @@
+Test-only upstream adapter for vendored libp2p-kad; not a runtime dependency.
+Source repository: https://github.com/libp2p/rust-libp2p
+Pinned commit: 7b9a558e3188eaf20a14bd8388d5e9b6e2aa9a23
+Source paths: misc/quickcheck-ext/Cargo.toml and misc/quickcheck-ext/src/lib.rs
+src/lib.rs copied byte-for-byte from the parent's retained raw upstream response (local://quickcheck-ext-pinned-lib.rs), with repository mode 0644.
+Cargo.toml.orig preserves the parent's exact raw upstream manifest (local://quickcheck-ext-pinned-Cargo.toml). Active Cargo.toml replaces edition/lints workspace inheritance with explicit edition 2021 and upstream cohort lint tables, adds rust-version 1.83.0, and retains upstream publish=false. No root workspace dependency or membership added. Registry quickcheck pinned to =1.0.3; num-traits retains upstream 0.2 requirement.
+License metadata: Unlicense/MIT.
+Parent-verified raw upstream SHA-256: Cargo.toml 35c3b2f9dd9d32ef9261865184f5aaecb90d0571fa68c5782d33c9aa52d08080; src/lib.rs (1264 bytes) 4a6dd30f7afcc84e6e1c0dad0738c7bda93ac68561d80b8c00e67aaf05f42d75.
+No adapter implementation or upstream Kad test changes; no checks, builds, tests, or fetch performed during preparation.
