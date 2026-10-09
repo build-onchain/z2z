@@ -178,6 +178,32 @@ fn source_facts(source: &SourceParameters) -> SourceFacts<'_> {
         fee_rule: &source.fee_rule }
 }
 
+// Independent target shape vector only: its opaque commitments are NOT opened
+// by the partial source-field checker or evidence of an authenticated quote.
+fn statement_for_generated_joint(note: &Note, fvk: &FullViewingKey) -> ziquid_protocol::native::Statement {
+    use ziquid_protocol::native::{Statement, stable_j_tag};
+    let vectors: Value = serde_json::from_str(include_str!(
+        "../../../contracts/evm/test/fixtures/native-financial-vectors.json",
+    )).unwrap();
+    let encoded = vectors["statement"].as_str().unwrap().as_bytes().as_chunks::<2>().0.iter()
+        .map(|pair| u8::from_str_radix(std::str::from_utf8(pair).unwrap(), 16).unwrap())
+        .collect::<Vec<_>>();
+    let mut statement = Statement::decode(&encoded).unwrap();
+    statement.a = 40_000;
+    statement.joint_value = 50_000;
+    statement.r_return = 40_000;
+    statement.targets = [4_134_000; 3];
+    statement.expiries = [4_134_020, 4_134_040, 4_134_040];
+    statement.fees = [10_000; 3];
+    statement.fee_caps = [12_000; 3];
+    let fvk_bytes = Zeroizing::new(fvk.to_bytes());
+    let nf = Zeroizing::new(note.nullifier(fvk).to_bytes());
+    statement.stable_jtag = stable_j_tag(statement.target_chain_id, &statement.obligation,
+        fvk_bytes[32..64].try_into().unwrap(), &nf).unwrap();
+    statement.validate().unwrap();
+    statement
+}
+
 // Real public upstream wire type serialization, not a second product parser.
 fn mutate_pczt(bytes: &[u8], mutate: impl FnOnce(&mut Value)) -> Zeroizing<Vec<u8>> {
     let wire = pczt::v2::Pczt::try_from(Pczt::parse(bytes).unwrap()).unwrap();
@@ -786,6 +812,165 @@ fn pczt_spend_of_threshold_keyed_note_is_authorized_by_the_frost_aggregate() {
 }
 
 #[test]
+fn statement_source_fields_reject_mismatches_in_actual_generated_private_transactions() {
+    use ziquid_proofs::native_relation::source::{
+        ConsumerFacts, SourceRelationError, check_statement_source_fields,
+    };
+    let wallet_fvk = FullViewingKey::from(&SpendingKey::from_bytes([0x44; 32]).unwrap());
+    let note = synthetic_note(wallet_fvk.address_at(0u32, Scope::External), 100_000, 81, NoteVersion::V3);
+    let (path, anchor) = synthetic_membership(&note);
+    let input = OwnedInput::new(note, wallet_fvk, path, anchor).unwrap();
+    // Ordinary generated fixture key, not evidence of production 2-of-2 custody.
+    let joint_fvk = FullViewingKey::from(&SpendingKey::from_bytes([73; 32]).unwrap());
+    let group_ak: [u8; 32] = joint_fvk.to_bytes()[..32].try_into().unwrap();
+    let source = SourceParameters {
+        network: Network::TestNetwork, target_height: 4_134_000.into(),
+        expiry_height: 4_134_020.into(), consensus_branch: BranchId::Nu6_3,
+        fee_rule: zip317::FeeRule::standard(),
+    };
+    let outputs = [
+        OutputPlan::new(joint_fvk.address_at(0u32, Scope::External), Zatoshis::from_u64(50_000).unwrap(),
+            MemoBytes::from_bytes(b"generated J for statement source validation").unwrap()),
+        OutputPlan::new(input.full_viewing_key().address_at(1u32, Scope::Internal),
+            Zatoshis::from_u64(40_000).unwrap(), MemoBytes::from_bytes(b"actual U change").unwrap()),
+    ];
+    let funding = prepare_joint_funding(&source, &input, &outputs, 0, &joint_fvk, group_ak,
+        &mut ChaCha20Rng::from_seed([74; 32])).unwrap();
+    let child_source = SourceParameters { expiry_height: 4_134_040.into(), ..source.clone() };
+    let solver_fvk = FullViewingKey::from(&SpendingKey::from_bytes([0x66; 32]).unwrap());
+    let payout = OutputPlan::new(solver_fvk.address_at(0u32, Scope::External),
+        Zatoshis::from_u64(40_000).unwrap(), MemoBytes::from_bytes(b"exact C payout").unwrap());
+    let returned = OutputPlan::new(input.full_viewing_key().address_at(2u32, Scope::Internal),
+        Zatoshis::from_u64(40_000).unwrap(), MemoBytes::from_bytes(b"exact R return").unwrap());
+    let c_terms = JointSpendTerms {
+        source: &child_source, note: funding.joint_note(), full_viewing_key: &joint_fvk,
+        group_ak, payout: &payout, fee: Zatoshis::from_u64(10_000).unwrap(),
+    };
+    let r_terms = JointSpendTerms { payout: &returned, ..c_terms };
+    let deferred_c = build_deferred_joint_spend(&c_terms, &mut ChaCha20Rng::from_seed([83; 32])).unwrap();
+    let deferred_r = build_deferred_joint_spend(&r_terms, &mut ChaCha20Rng::from_seed([82; 32])).unwrap();
+    let (_, joint_anchor) = synthetic_membership(funding.joint_note());
+    let funding_facts = FundingFacts {
+        source: source_facts(&source),
+        input: OwnedInputFacts { note: input.note(), full_viewing_key: input.full_viewing_key(),
+            merkle_path: input.merkle_path(), anchor: input.anchor() },
+        private_pczt: funding.private_pczt_bytes(),
+        requested_output_actions: funding.payout_witness().requested_output_actions(),
+        joint_requested_index: 0, joint_full_viewing_key: &joint_fvk, group_ak, fee: 10_000,
+    };
+    let output_facts = || outputs.iter().map(|output| NativeOutputFacts {
+        recipient: output.recipient(), value: u64::from(output.value()), memo: Some(output.memo().as_array()),
+    });
+    let completion = ConsumerFacts {
+        private_pczt: deferred_c.private_pczt_bytes(), anchor: joint_anchor,
+        terms: JointSpendFacts { source: source_facts(&child_source), note: funding.joint_note(),
+            full_viewing_key: &joint_fvk, group_ak, fee: 10_000,
+            payout: NativeOutputFacts { recipient: payout.recipient(), value: 40_000,
+                memo: Some(payout.memo().as_array()) } },
+    };
+    let recovery = ConsumerFacts {
+        private_pczt: deferred_r.private_pczt_bytes(),
+        terms: JointSpendFacts { payout: NativeOutputFacts { recipient: returned.recipient(),
+            value: 40_000, memo: Some(returned.memo().as_array()) }, ..completion.terms },
+        ..completion
+    };
+    let statement = statement_for_generated_joint(funding.joint_note(), &joint_fvk);
+    let check = |statement: &ziquid_protocol::native::Statement| {
+        check_statement_source_fields(statement, &funding_facts, output_facts(), &completion, &recovery)
+    };
+    let checked = check(&statement).unwrap();
+    assert_eq!((checked.input_debit, checked.owned_change, checked.joint_note.value().inner(), checked.fee),
+        (100_000, 40_000, 50_000, 10_000));
+
+    // Independently shape-valid financial scalars must match the original
+    // generated F/C/R, not one another or a caller-rewritten expected field.
+    for role in 0..3 {
+        let mut changed = statement;
+        changed.targets[role] += 1;
+        changed.validate().unwrap();
+        assert!(matches!(check(&changed), Err(SourceRelationError::StatementMismatch)));
+        changed = statement;
+        changed.expiries[role] += 1;
+        changed.validate().unwrap();
+        assert!(matches!(check(&changed), Err(SourceRelationError::StatementMismatch)));
+        changed = statement;
+        changed.fees[role] += 1;
+        if role == 1 { changed.a -= 1; }
+        if role == 2 { changed.r_return -= 1; }
+        changed.validate().unwrap();
+        assert!(matches!(check(&changed), Err(SourceRelationError::StatementMismatch)));
+        changed = statement;
+        changed.fee_caps[role] = 9_999;
+        assert!(matches!(check(&changed), Err(SourceRelationError::StatementShape)));
+    }
+    let mut changed = statement;
+    changed.joint_value += 1;
+    changed.a += 1;
+    changed.r_return += 1;
+    changed.validate().unwrap();
+    assert!(matches!(check(&changed), Err(SourceRelationError::StatementMismatch)));
+    changed = statement;
+    changed.stable_jtag[0] ^= 1;
+    changed.validate().unwrap();
+    assert!(matches!(check(&changed), Err(SourceRelationError::StableTagMismatch)));
+    changed = statement;
+    changed.target_chain_id += 1;
+    changed.validate().unwrap();
+    assert!(matches!(check(&changed), Err(SourceRelationError::StableTagMismatch)));
+    changed = statement;
+    changed.obligation[0] ^= 1;
+    changed.validate().unwrap();
+    assert!(matches!(check(&changed), Err(SourceRelationError::StableTagMismatch)));
+    for (network, pool, version, branch) in [
+        (0, 3, 6, 0x37a5_165b), (1, 2, 6, 0x37a5_165b),
+        (1, 3, 5, 0x37a5_165b), (1, 3, 6, 0xc8e7_1055),
+    ] {
+        changed = statement;
+        changed.source_network = network;
+        changed.source_pool = pool;
+        changed.transaction_version = version;
+        changed.consensus_branch = branch;
+        assert!(matches!(check(&changed), Err(SourceRelationError::StatementShape)));
+    }
+
+    let mut wrong_funding = funding_facts;
+    wrong_funding.source.target_height = 4_134_001.into();
+    assert!(matches!(check_statement_source_fields(&statement, &wrong_funding,
+        output_facts(), &completion, &recovery), Err(SourceRelationError::StatementMismatch)));
+    let changed_input_note = synthetic_note(input.note().recipient(), 99_999, 81, NoteVersion::V3);
+    wrong_funding = funding_facts;
+    wrong_funding.input.note = &changed_input_note;
+    assert!(check_statement_source_fields(&statement, &wrong_funding,
+        output_facts(), &completion, &recovery).is_err());
+    let mut wrong_completion = completion;
+    wrong_completion.terms.payout.recipient = returned.recipient();
+    assert!(check_statement_source_fields(&statement, &funding_facts,
+        output_facts(), &wrong_completion, &recovery).is_err());
+    wrong_completion = completion;
+    wrong_completion.terms.payout.memo = Some(returned.memo().as_array());
+    assert!(check_statement_source_fields(&statement, &funding_facts,
+        output_facts(), &wrong_completion, &recovery).is_err());
+    let mut wrong_recovery = recovery;
+    wrong_recovery.terms.group_ak[0] ^= 1;
+    assert!(matches!(check_statement_source_fields(&statement, &funding_facts,
+        output_facts(), &completion, &wrong_recovery), Err(SourceRelationError::Expectation)));
+
+    // A semantically valid, actually generated R-to-S is not U recovery even
+    // when its private expected terms are rewritten to agree with the packet.
+    let redirected_plan = OutputPlan::new(payout.recipient(), returned.value(), returned.memo().clone());
+    let redirected_terms = JointSpendTerms { payout: &redirected_plan, ..r_terms };
+    let redirected = build_deferred_joint_spend(&redirected_terms,
+        &mut ChaCha20Rng::from_seed([84; 32])).unwrap();
+    review_joint_spend(redirected.private_pczt_bytes(), &redirected_terms).unwrap();
+    let redirected_recovery = ConsumerFacts { private_pczt: redirected.private_pczt_bytes(),
+        terms: JointSpendFacts { payout: NativeOutputFacts { recipient: redirected_plan.recipient(),
+            value: 40_000, memo: Some(redirected_plan.memo().as_array()) }, ..recovery.terms },
+        ..recovery };
+    assert!(matches!(check_statement_source_fields(&statement, &funding_facts,
+        output_facts(), &completion, &redirected_recovery), Err(SourceRelationError::RecoveryOwnership)));
+}
+
+#[test]
 fn generated_funding_joint_note_is_preauthorized_for_early_r_before_funding_owner_signs() {
     let ceremony = run_dkg();
     let joint_fvk = experimental_joint_fvk(&ceremony.group);
@@ -1028,7 +1213,7 @@ fn generated_funding_joint_note_is_preauthorized_for_early_r_before_funding_owne
     // Authentic genesis is not an origin certificate for synthetic U/J. The
     // actual one-loop composed consumer must exhaust it and return no accounting.
     use ziquid_proofs::{genesis::ShieldedPool,
-        native_relation::source::{ConsumerFacts, SourceRelationError, verify_supplied_prefix},
+        native_relation::source::{ConsumerFacts, SourceRelationError, check_statement_source_fields, verify_supplied_prefix},
         source_note::{SourceFundingLocator, SourceNoteError, SourceNoteSelection}};
     let origin_selection = SourceNoteSelection {
         pool: ShieldedPool::Ironwood,
@@ -1051,11 +1236,23 @@ fn generated_funding_joint_note_is_preauthorized_for_early_r_before_funding_owne
     history.extend_from_slice(genesis);
     let completion = ConsumerFacts { private_pczt: deferred_c.private_pczt_bytes(), terms: completion_facts, anchor: c_anchor };
     let recovery = ConsumerFacts { private_pczt: deferred.private_pczt_bytes(), terms: recovery_facts, anchor: joint_anchor };
+    let statement = statement_for_generated_joint(&joint_note, &joint_fvk);
+    check_statement_source_fields(&statement, &funding_facts, output_facts(), &completion, &recovery).unwrap();
     let mut reader = history.as_slice();
-    assert_eq!(verify_supplied_prefix(&mut reader, 1, history.len() as u64,
+    assert_eq!(verify_supplied_prefix(&statement, &mut reader, 1, history.len() as u64,
         origin_selection, joint_selection, &funding_facts, output_facts(), &completion, &recovery).unwrap_err(),
         SourceRelationError::History(SourceNoteError::FundingNotFound));
     assert!(reader.is_empty());
+    let mut wrong_statement = statement;
+    wrong_statement.a += 1;
+    wrong_statement.joint_value += 1;
+    wrong_statement.r_return += 1;
+    wrong_statement.validate().unwrap();
+    let mut reader = history.as_slice();
+    assert_eq!(verify_supplied_prefix(&wrong_statement, &mut reader, 1, history.len() as u64,
+        origin_selection, joint_selection, &funding_facts, output_facts(), &completion, &recovery).unwrap_err(),
+        SourceRelationError::StatementMismatch);
+    assert_eq!(reader.len(), history.len(), "source mismatch rejects before history acquisition");
 
     #[cfg(feature = "native-relation-smoke")]
     for (_case, private, facts, anchor, raw) in [

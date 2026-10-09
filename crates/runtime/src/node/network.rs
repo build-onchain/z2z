@@ -300,6 +300,10 @@ struct Output {
     stdout: std::io::Stdout,
     original_flags: rustix::fs::OFlags,
     state_path: Option<std::path::PathBuf>,
+    /// Only authenticated terminal-ACK request channels intentionally omitted.
+    /// Pinned behaviour IDs are unique locally; capacity follows live sessions
+    /// times the existing eight concurrent session streams, never remote bytes.
+    intentional_omissions: HashSet<(PeerId, request_response::InboundRequestId)>,
 }
 
 impl Output {
@@ -308,7 +312,7 @@ impl Output {
         let original_flags = rustix::fs::fcntl_getfl(&stdout).map_err(|_| Error::Output)?;
         rustix::fs::fcntl_setfl(&stdout, original_flags | rustix::fs::OFlags::NONBLOCK)
             .map_err(|_| Error::Output)?;
-        Ok(Self { stdout, original_flags, state_path: None })
+        Ok(Self { stdout, original_flags, state_path: None, intentional_omissions: HashSet::new() })
     }
 }
 
@@ -719,6 +723,7 @@ fn handle_event_inner(
                 // §7.2 transcripts are bound to the authenticated direct
                 // connection; a closed connection ends its sessions.
                 sessions.drop_peer(&peer_id);
+                output.intentional_omissions.retain(|(peer, _)| peer != &peer_id);
             }
             if !stopping && num_established == 0 && !swarm.is_connected(&peer_id)
                 && let Some(reconnect) = reconnect
@@ -757,21 +762,41 @@ fn handle_event_inner(
         }
         SwarmEvent::Behaviour(Event::Session(event)) => match event {
             request_response::Event::Message { peer, message, .. } => match message {
-                request_response::Message::Request { request, channel, .. } => {
+                request_response::Message::Request { request_id, request, channel } => {
                     let request = Zeroizing::new(request);
                     let decoded = session::parse(&request).map(dkg::GuardedEnvelope);
                     let result = decoded.map_err(|_| Error::SessionEnvelope).and_then(|envelope| {
                         if stopping { return Err(Error::DkgProtocol); }
-                        let mut response = dkg::respond(&peer, &envelope, policy, signing_key, sessions)?;
+                        let (mut payload, completed) = if matches!(envelope.kind,
+                            session::kind::NATIVE_QUOTE | session::kind::NATIVE_ACCEPTANCE)
+                            || sessions.is_native_session(&peer, &envelope.session_id)
+                        {
+                            let response = sessions.respond_native(&peer, &envelope, signing_key,
+                                super::state::now_unix_secs()).map_err(|_| Error::SessionEnvelope)?;
+                            (response, None)
+                        } else {
+                            let response = dkg::respond(&peer, &envelope, policy, signing_key, sessions)?;
+                            (Some(response.payload), response.completed)
+                        };
                         emit(output, PublicEvent::SessionRequest {
                             peer_id: &peer, kind: envelope.kind, seq: envelope.seq,
                         })?;
                         view_slot_with(|view| view.session_request(&peer.to_string(), envelope.kind, envelope.seq));
+                        // A terminal ACK consumes no response and never forms an
+                        // ACK loop. Quote acceptance is an explicit local action.
+                        let Some(payload) = payload.as_mut() else {
+                            if envelope.kind != session::kind::ACK
+                                || output.intentional_omissions.len() >= session::MAX_SESSIONS * 8 {
+                                return Err(Error::SessionEnvelope);
+                            }
+                            output.intentional_omissions.insert((peer, request_id));
+                            return Ok(());
+                        };
                         match swarm.behaviour_mut().session.send_response(
-                            channel, std::mem::take(&mut *response.payload),
+                            channel, std::mem::take(&mut **payload),
                         ) {
                             Ok(()) => {
-                                if let Some(commit) = response.completed {
+                                if let Some(commit) = completed {
                                     emit_completion(output, &peer, &commit)?;
                                 }
                                 Ok(())
@@ -793,27 +818,43 @@ fn handle_event_inner(
                     }
                 }
                 request_response::Message::Response { request_id, response } => {
-                    // This node is responder-only: no response has an outstanding
-                    // local request id, even if its envelope happens to match pins.
-                    let _response = Zeroizing::new(response);
-                    sessions.drop_peer(&peer);
-                    let _ = swarm.disconnect_peer_id(peer);
+                    let response = Zeroizing::new(response);
+                    // Only a selected native session's signed ACK may finish
+                    // its exact outstanding frame. Other unsolicited responses
+                    // preserve the original responder-only rejection policy.
+                    let ok = session::parse(&response).is_ok_and(|envelope| {
+                        envelope.kind == session::kind::ACK
+                            && sessions.is_native_session(&peer, &envelope.session_id)
+                            && sessions.respond_native(&peer, &envelope, signing_key,
+                                super::state::now_unix_secs()).is_ok_and(|reply| reply.is_none())
+                    });
+                    if !ok {
+                        sessions.drop_peer(&peer);
+                        let _ = swarm.disconnect_peer_id(peer);
+                    }
                     emit(output, PublicEvent::SessionResponse {
                         peer_id: &peer,
                         request_id: display_id(&request_id),
-                        ok: false,
+                        ok,
                     })?;
                 }
             },
             request_response::Event::OutboundFailure { peer, error, .. } => {
                 emit(output, PublicEvent::SessionOutboundFailure { peer_id: &peer, reason: outbound_reason(&error) })?;
             }
-            request_response::Event::InboundFailure { peer, .. } => {
+            request_response::Event::InboundFailure { peer, request_id, error, .. } => {
+                let intentional = output.intentional_omissions.remove(&(peer, request_id));
+                if intentional && matches!(error, request_response::InboundFailure::ResponseOmission) {
+                    return Ok(()); // Accepted terminal ACK, not a protocol failure.
+                }
                 sessions.drop_peer(&peer);
+                output.intentional_omissions.retain(|(pending_peer, _)| pending_peer != &peer);
                 let _ = swarm.disconnect_peer_id(peer);
                 emit(output, PublicEvent::SessionInboundFailure { peer_id: &peer })?;
             }
-            request_response::Event::ResponseSent { .. } => {}
+            request_response::Event::ResponseSent { peer, request_id, .. } => {
+                output.intentional_omissions.remove(&(peer, request_id));
+            }
         },
         SwarmEvent::Behaviour(Event::Discovery(event)) if !stopping => match event {
             discovery::Event::Started(peer) => {
@@ -1104,5 +1145,168 @@ pub mod hello {
             nonce[0] = 1;
         }
         nonce
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::native_quote::{NativeRole, QuotePhase, QuoteSelection, QuoteV1, QUOTE_BYTES};
+    use ed25519_dalek::{Signer, SigningKey};
+    use sha2::{Digest, Sha256};
+
+    fn socket_swarm(identity: libp2p::identity::Keypair) -> Swarm<Behaviour> {
+        SwarmBuilder::with_existing_identity(identity).with_tokio()
+            .with_tcp(tcp::Config::default().nodelay(true), noise::Config::new, yamux::Config::default).unwrap()
+            .with_behaviour(|key| Behaviour {
+                cohort: PeerCohort { maximum: 1, peers: HashSet::new() },
+                limits: connection_limits::Behaviour::new(connection_limits::ConnectionLimits::default()
+                    .with_max_pending_incoming(Some(1)).with_max_pending_outgoing(Some(1))
+                    .with_max_established(Some(1)).with_max_established_per_peer(Some(1))),
+                ping: ping::Behaviour::new(ping::Config::default()),
+                identify: identify::Behaviour::new(identify::Config::new(IDENTIFY_PROTOCOL.to_owned(), key.public()).with_cache_size(0)),
+                session: request_response::Behaviour::new([(session::PROTOCOL_ID, request_response::ProtocolSupport::Full)],
+                    request_response::Config::default().with_request_timeout(Duration::from_secs(5)).with_max_concurrent_streams(1)),
+                discovery: None.into(),
+            }).unwrap()
+            .with_swarm_config(|_| libp2p::swarm::Config::without_executor().with_idle_connection_timeout(Duration::from_secs(30)))
+            .build()
+    }
+
+    fn identity() -> (libp2p::identity::Keypair, SigningKey) {
+        let identity = libp2p::identity::Keypair::generate_ed25519();
+        let pair = identity.clone().try_into_ed25519().unwrap();
+        let bytes = Zeroizing::new(<[u8; 32]>::try_from(pair.secret().as_ref()).unwrap());
+        let signer = SigningKey::from_bytes(&bytes);
+        (identity, signer)
+    }
+
+    fn signed(selection: &QuoteSelection, key: &SigningKey, seq: u32, kind: u8, body: &[u8], hello: bool) -> session::Envelope {
+        let mut envelope = session::Envelope { lane_id: 5, chain_context_digest: selection.chain_context,
+            deployment_digest: selection.deployment_context, session_id: selection.session_id,
+            initiator_coord_key: selection.initiator_coord_key,
+            responder_coord_key: if hello { [0; 32] } else { selection.responder_coord_key },
+            role_map: 0, challenge_i: selection.challenge_i,
+            challenge_r: if hello { [0; 32] } else { selection.challenge_r },
+            seq, kind, sent_at_unix: super::super::state::now_unix_secs(), body: body.to_vec(), signature: [0; 64] };
+        let bytes = Zeroizing::new(envelope.signed_bytes()); envelope.signature = key.sign(&bytes).to_bytes();
+        envelope
+    }
+
+    struct SocketPair {
+        user: Swarm<Behaviour>, solver: Swarm<Behaviour>,
+        user_key: SigningKey, solver_key: SigningKey,
+        users: session::SessionTable, solvers: session::SessionTable,
+        output: Output,
+    }
+
+    impl SocketPair {
+        async fn new() -> (Self, QuoteSelection, QuoteV1) {
+            let (user_id, user_key) = identity(); let (solver_id, solver_key) = identity();
+            let mut pair = Self { user: socket_swarm(user_id), solver: socket_swarm(solver_id),
+                users: session::SessionTable::new(user_key.verifying_key().to_bytes()),
+                solvers: session::SessionTable::new(solver_key.verifying_key().to_bytes()),
+                user_key, solver_key, output: Output::new().unwrap() };
+            pair.solver.listen_on("/ip4/127.0.0.1/tcp/0".parse().unwrap()).unwrap();
+            let address = loop { if let SwarmEvent::NewListenAddr { address, .. } = pair.solver.next().await.unwrap() { break address; } };
+            pair.user.dial(address).unwrap();
+            while !pair.user.is_connected(pair.solver.local_peer_id()) || !pair.solver.is_connected(pair.user.local_peer_id()) {
+                let _ = pair.step().await;
+            }
+            let mut bytes = Zeroizing::new([0_u8; QUOTE_BYTES]);
+            for (offset, domain) in [(0, b"Z2Z_NATIVE_QUOTE\0".as_slice()), (91, b"Z2Z_NATIVE_ROUTE\0".as_slice()),
+                (303, b"Z2Z_NATIVE_DEPLOY\0".as_slice()), (587, b"Z2Z_NATIVE_WINDOW\0".as_slice())] {
+                bytes[offset..offset + domain.len()].copy_from_slice(domain);
+                bytes[offset + domain.len()..offset + domain.len() + 2].copy_from_slice(&1_u16.to_be_bytes());
+            }
+            bytes[19..51].fill(8); bytes[51..83].fill(9); bytes[90] = 1;
+            let terms = QuoteV1::decode(bytes.as_slice()).unwrap();
+            let selected = QuoteSelection { local_role: NativeRole::User, owner_scope: [1; 32], session_id: [2; 32],
+                initiator_coord_key: pair.user_key.verifying_key().to_bytes(), responder_coord_key: pair.solver_key.verifying_key().to_bytes(),
+                chain_context: Sha256::digest(&terms.as_bytes()[91..303]).into(), deployment_context: Sha256::digest(&terms.as_bytes()[303..587]).into(),
+                quote_id: [8; 32], s_offer_id: [9; 32], u_trade_intent_id: [10; 32], challenge_i: [11; 32], challenge_r: [12; 32],
+                proposal_seq: 1, user_acceptance_seq: 3, solver_acceptance_seq: 3 };
+            let hello = signed(&selected, &pair.user_key, 0, session::kind::HELLO, &[], true);
+            let ack = signed(&selected, &pair.solver_key, 0, session::kind::ACK, &hello.ack_digest(), false);
+            let confirmation = signed(&selected, &pair.user_key, 1, session::kind::ACK, &ack.ack_digest(), false);
+            let now = super::super::state::now_unix_secs();
+            pair.users.retain_confirmed_transcript(pair.solver.local_peer_id(), &hello.payload().unwrap(), &ack.payload().unwrap(), &confirmation.payload().unwrap(), now).unwrap();
+            pair.solvers.retain_confirmed_transcript(pair.user.local_peer_id(), &hello.payload().unwrap(), &ack.payload().unwrap(), &confirmation.payload().unwrap(), now).unwrap();
+            pair.users.select_native_quote(pair.solver.local_peer_id(), selected).unwrap();
+            let mut solver_selection = selected; solver_selection.local_role = NativeRole::Solver;
+            pair.solvers.select_native_quote(pair.user.local_peer_id(), solver_selection).unwrap();
+            (pair, selected, terms)
+        }
+
+        // Both swarms use the same receiving event handler as run-node, not an echo.
+        async fn step(&mut self) -> (bool, Option<Zeroizing<Vec<u8>>>, bool) {
+            let (user, event) = tokio::select! {
+                event = self.user.next() => (true, event.unwrap()),
+                event = self.solver.next() => (false, event.unwrap()),
+            };
+            assert!(!matches!(&event, SwarmEvent::ConnectionClosed { .. }), "authenticated ACK must not disconnect");
+            let response = match &event { SwarmEvent::Behaviour(Event::Session(request_response::Event::Message {
+                message: request_response::Message::Response { response, .. }, .. })) => Some(Zeroizing::new(response.clone())), _ => None };
+            let omitted = matches!(&event, SwarmEvent::Behaviour(Event::Session(request_response::Event::InboundFailure {
+                error: request_response::InboundFailure::ResponseOmission, .. })));
+            let mut reconnect = None;
+            if user {
+                handle_event_inner(&mut self.user, &mut self.output, &mut reconnect, event, false, &self.user_key, &mut self.users, None).unwrap();
+            } else {
+                handle_event_inner(&mut self.solver, &mut self.output, &mut reconnect, event, false, &self.solver_key, &mut self.solvers, None).unwrap();
+            }
+            (user, response, omitted)
+        }
+
+        async fn exchange(&mut self, user: bool, payload: &[u8]) -> Zeroizing<Vec<u8>> {
+            if user { self.user.behaviour_mut().session.send_request(self.solver.local_peer_id(), payload.to_vec()); }
+            else { self.solver.behaviour_mut().session.send_request(self.user.local_peer_id(), payload.to_vec()); }
+            loop {
+                let (from_user, response, _) = self.step().await;
+                if from_user == user && let Some(response) = response { return response; }
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn socket_terminal_ack_omission_preserves_full_quote_and_genuine_failures_still_close() {
+        tokio::time::timeout(Duration::from_secs(15), async {
+            let (mut pair, selected, terms) = SocketPair::new().await;
+            let now = super::super::state::now_unix_secs();
+            let proposal = pair.solvers.native_proposal(pair.user.local_peer_id(), &selected.session_id, &terms, &pair.solver_key, now).unwrap();
+            let ack = pair.exchange(false, &proposal).await;
+            assert_eq!(pair.users.native_quote(pair.solver.local_peer_id(), &selected.session_id).unwrap().phase(), QuotePhase::Proposal);
+            let retry = pair.exchange(false, &proposal).await; assert_eq!(ack.as_slice(), retry.as_slice());
+            // The genuine terminal ACK may itself arrive as a request (including
+            // its exact retransmission). Intentionally no ACK-of-ACK is sent.
+            pair.user.behaviour_mut().session.send_request(pair.solver.local_peer_id(), ack.to_vec());
+            loop { let (user, _, omitted) = pair.step().await; if !user && omitted { break; } }
+            assert!(pair.output.intentional_omissions.is_empty(), "consume the exact omission exemption");
+            assert!(pair.solvers.native_quote(pair.user.local_peer_id(), &selected.session_id).is_some());
+            let acceptance = pair.users.native_acceptance(pair.solver.local_peer_id(), &selected.session_id, &pair.user_key, now).unwrap();
+            let ack = pair.exchange(true, &acceptance).await;
+            let retry = pair.exchange(true, &acceptance).await; assert_eq!(ack.as_slice(), retry.as_slice());
+            let agreement = pair.solvers.native_acceptance(pair.user.local_peer_id(), &selected.session_id, &pair.solver_key, now).unwrap();
+            let ack = pair.exchange(false, &agreement).await;
+            let retry = pair.exchange(false, &agreement).await; assert_eq!(ack.as_slice(), retry.as_slice());
+            let user_quote = pair.users.native_quote(pair.solver.local_peer_id(), &selected.session_id).unwrap();
+            let solver_quote = pair.solvers.native_quote(pair.user.local_peer_id(), &selected.session_id).unwrap();
+            assert_eq!(user_quote.phase(), QuotePhase::Agreed); assert_eq!(solver_quote.phase(), QuotePhase::Agreed);
+            assert_eq!(user_quote.agreement_digest(), solver_quote.agreement_digest());
+            // A different omission is not exempt: obtain a real inbound id from
+            // the socket, omit its channel without authenticating a terminal ACK.
+            pair.user.behaviour_mut().session.send_request(pair.solver.local_peer_id(), proposal.to_vec());
+            loop {
+                tokio::select! {
+                    event = pair.user.next() => { let event = event.unwrap(); let mut reconnect = None;
+                        handle_event_inner(&mut pair.user, &mut pair.output, &mut reconnect, event, false, &pair.user_key, &mut pair.users, None).unwrap(); }
+                    event = pair.solver.next() => { let event = event.unwrap();
+                        if let SwarmEvent::Behaviour(Event::Session(request_response::Event::Message {
+                            message: request_response::Message::Request { channel, .. }, .. })) = event { drop(channel); break; } }
+                }
+            }
+            loop { let (user, _, omitted) = pair.step().await; if !user && omitted { break; } }
+            assert!(pair.solvers.native_quote(pair.user.local_peer_id(), &selected.session_id).is_none(), "genuine failures destroy session");
+        }).await.expect("bounded real loopback quote exchange must finish");
     }
 }

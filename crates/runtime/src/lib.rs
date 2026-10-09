@@ -1,7 +1,7 @@
 //! Durable native execution primitives; no signing, source verification or
 //! financial terminal state can be inferred from these local records.
 
-#[cfg(all(test, feature = "postgres-tests"))]
+#[cfg(test)]
 extern crate self as ziquid_runtime;
 
 #[cfg(all(test, feature = "postgres-tests"))]

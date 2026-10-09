@@ -1,10 +1,11 @@
-//! Unsigned calls for the immutable native ETH obligation, never transaction submission.
+//! Unsigned calls and explicit block-pinned public observations for the native ETH obligation.
 //!
 //! Expected journals describe exact public bytes, not certificates. Proof checks
 //! inspect only the pinned SP1 v6.1.0 wrapper and scalar bounds; they do not check
 //! pairing validity or program/journal binding. Independent deployment pins must
-//! come from the caller's trusted configuration; no chain identity, source
-//! finality, armed state, payment, entitlement or completed transfer is established.
+//! come from the caller's trusted configuration. Call builders establish no
+//! chain identity or armed state; inspection is trusted-node observation only.
+//! Neither establishes source finality, payment, entitlement or actual transfer.
 
 use std::{error::Error, fmt};
 
@@ -15,6 +16,8 @@ use ziquid_protocol::native::{
     ArmJournal, DeploymentDescriptor, OriginJournal, Resolution, ResolveJournal,
     SourceAcceptanceJournal, SourceBoundary, Statement,
 };
+
+pub mod inspection;
 
 const PROOF_BYTES: usize = 356;
 const PROOF_SELECTOR: [u8; 4] = [0x43, 0x88, 0xa2, 0x1c];
@@ -167,9 +170,7 @@ pub fn build_resolve_call(
     })
 }
 
-fn check_inputs(
-    expected: &DeploymentDescriptor, statement: &Statement, boundary: &SourceBoundary,
-) -> Result<(), CallBuildError> {
+fn check_statement(expected: &DeploymentDescriptor, statement: &Statement) -> Result<(), CallBuildError> {
     if expected.validate().is_err()
         || statement.schema_version != expected.schema_version
         || statement.source_network != expected.source_network
@@ -187,6 +188,13 @@ fn check_inputs(
         return Err(CallBuildError::WrongDeployment);
     }
     statement.validate().map_err(|_| CallBuildError::InvalidStatement)?;
+    Ok(())
+}
+
+fn check_inputs(
+    expected: &DeploymentDescriptor, statement: &Statement, boundary: &SourceBoundary,
+) -> Result<(), CallBuildError> {
+    check_statement(expected, statement)?;
     boundary.validate().map_err(|_| CallBuildError::InvalidBoundary)?;
     for program in [expected.financial_program, expected.origin_program, expected.source_acceptance_program] {
         if program >= SCALAR_MODULUS { return Err(CallBuildError::InvalidProgram); }

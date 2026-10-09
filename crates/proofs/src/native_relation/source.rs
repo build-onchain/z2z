@@ -3,6 +3,8 @@
 //! Finite prefix evidence remains nonfinancial and never means canonical/final.
 use std::{fmt, io::Read};
 use orchard::{Anchor, note::ExtractedNoteCommitment};
+use zcash_protocol::consensus::Network;
+use ziquid_protocol::native::{Statement, stable_j_tag};
 use super::{
     CheckedFunding, CheckedJointConsumer, FundingFacts, JointSpendFacts,
     NativeOutputFacts, NativeRelationError,
@@ -29,6 +31,10 @@ pub enum SourceRelationError {
     History(SourceNoteError),
     Selection,
     Expectation,
+    StatementShape,
+    StatementMismatch,
+    StableTagMismatch,
+    RecoveryOwnership,
 }
 impl fmt::Display for SourceRelationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -64,18 +70,84 @@ impl fmt::Debug for CheckedNativePrefix {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { f.write_str("CheckedNativePrefix([redacted])") }
 }
 
+/// Check only the specified source fields against actual private F/J/C/R data.
+/// Reopens every F output and both pre-parent consumers using the shared rules;
+/// the stable tag uses the generated J's authentic FVK nk and derived nullifier.
+/// R must be recoverable by the originating wallet, not merely a claimed return.
+///
+/// This deliberately returns existing private funding accounting, NOT a checked
+/// financial Statement. Canonical openings for source_terms_commitment,
+/// joint_binding and group_grant_commitment, authenticated S source receiver /
+/// quote-to-target beneficiary bindings and window/policy/program qualification
+/// are unavailable here. Nonzero opaque fields are shape, never evidence. This
+/// function creates no grant, authorization, journal, acceptance or entitlement.
+pub fn check_statement_source_fields<'a>(
+    statement: &Statement, funding: &FundingFacts<'_>,
+    outputs: impl ExactSizeIterator<Item = NativeOutputFacts<'a>>,
+    c: &ConsumerFacts<'_>, r: &ConsumerFacts<'_>,
+) -> Result<CheckedFunding, SourceRelationError> {
+    statement.validate().map_err(|_| SourceRelationError::StatementShape)?;
+    for (index, (source, fee)) in [
+        (&funding.source, funding.fee), (&c.terms.source, c.terms.fee), (&r.terms.source, r.terms.fee),
+    ].into_iter().enumerate() {
+        super::validate_source(source)?;
+        if source.network != Network::TestNetwork
+            || u32::from(source.consensus_branch) != statement.consensus_branch
+            || u32::from(source.target_height) != statement.targets[index]
+            || u32::from(source.expiry_height) != statement.expiries[index]
+            || fee != statement.fees[index] || fee > statement.fee_caps[index]
+        { return Err(SourceRelationError::StatementMismatch); }
+    }
+    // F and both children enforce the actual Ironwood V3 / transaction V6
+    // profile, every note opening/ciphertext/memo, configured ZIP317 fee and
+    // original private effects. No decoded scalar can substitute those checks.
+    let checked = super::verify_funding(funding, outputs, None)?;
+    check_consumer_expectations(funding, &checked, c, r)?;
+    if checked.joint_note.value().inner() != statement.joint_value
+        || c.terms.payout.value != statement.a || r.terms.payout.value != statement.r_return
+    { return Err(SourceRelationError::StatementMismatch); }
+    if funding.input.full_viewing_key.scope_for_address(&r.terms.payout.recipient).is_none() {
+        return Err(SourceRelationError::RecoveryOwnership);
+    }
+    let fvk = Zeroizing::new(funding.joint_full_viewing_key.to_bytes());
+    let nf = Zeroizing::new(checked.joint_note.nullifier(funding.joint_full_viewing_key).to_bytes());
+    let nk = fvk[32..64].try_into().map_err(|_| SourceRelationError::Expectation)?;
+    let tag = stable_j_tag(statement.target_chain_id, &statement.obligation, nk, &nf)
+        .map_err(|_| SourceRelationError::StatementShape)?;
+    if tag != statement.stable_jtag { return Err(SourceRelationError::StableTagMismatch); }
+    Ok(checked)
+}
+
+fn check_consumer_expectations(
+    funding: &FundingFacts<'_>, checked: &CheckedFunding, c: &ConsumerFacts<'_>, r: &ConsumerFacts<'_>,
+) -> Result<(), SourceRelationError> {
+    let expected_fvk = Zeroizing::new(funding.joint_full_viewing_key.to_bytes());
+    for expected in [c, r] {
+        if !super::same_note(expected.terms.note, &checked.joint_note)
+            || *Zeroizing::new(expected.terms.full_viewing_key.to_bytes()) != *expected_fvk
+            || expected.terms.group_ak != funding.group_ak { return Err(SourceRelationError::Expectation); }
+    }
+    let reviewed_c = super::review_joint_pczt(super::parse_canonical_pczt(c.private_pczt)?, &c.terms)?;
+    let reviewed_r = super::review_joint_pczt(super::parse_canonical_pczt(r.private_pczt)?, &r.terms)?;
+    if reviewed_c.effect_id == reviewed_r.effect_id { return Err(SourceRelationError::Expectation); }
+    Ok(())
+}
+
 /// One actual complete-genesis replay tracks U and J, enforces U NF's consumer
 /// is the EXACT J-funding F including both identities, then reopens complete F
 /// and authentic same-J C/R metadata against the actual winner's bytes. Unknown
 /// mixed/partial/excess consumers remain Other, never implied full refund.
+/// Statement matching is limited to check_statement_source_fields above; opaque
+/// commitments remain unopened and this prefix cannot create financial journals.
 #[allow(clippy::too_many_arguments)]
 pub fn verify_supplied_prefix<'a>(
+    statement: &Statement,
     reader: &mut impl Read, max_blocks: u32, max_input_bytes: u64,
     origin: SourceNoteSelection, joint: SourceNoteSelection, funding: &FundingFacts<'_>,
     outputs: impl Clone + ExactSizeIterator<Item = NativeOutputFacts<'a>>,
     c: &ConsumerFacts<'_>, r: &ConsumerFacts<'_>,
 ) -> Result<CheckedNativePrefix, SourceRelationError> {
-    let checked = super::verify_funding(funding, outputs.clone(), None)?;
+    let checked = check_statement_source_fields(statement, funding, outputs.clone(), c, r)?;
     let input = funding.input;
     if origin.pool != ShieldedPool::Ironwood
         || origin.commitment != ExtractedNoteCommitment::from(input.note.commitment()).to_bytes()
@@ -86,15 +158,6 @@ pub fn verify_supplied_prefix<'a>(
         || joint.funding.effect_id != checked.effect_id
         || usize::try_from(joint.funding.action_index).ok() != Some(checked.joint_action_index)
     { return Err(SourceRelationError::Selection); }
-    let expected_fvk = Zeroizing::new(funding.joint_full_viewing_key.to_bytes());
-    for expected in [c, r] {
-        if !super::same_note(expected.terms.note, &checked.joint_note)
-            || *Zeroizing::new(expected.terms.full_viewing_key.to_bytes()) != *expected_fvk
-            || expected.terms.group_ak != funding.group_ak { return Err(SourceRelationError::Expectation); }
-    }
-    let reviewed_c = super::review_joint_pczt(super::parse_canonical_pczt(c.private_pczt)?, &c.terms)?;
-    let reviewed_r = super::review_joint_pczt(super::parse_canonical_pczt(r.private_pczt)?, &r.terms)?;
-    if reviewed_c.effect_id == reviewed_r.effect_id { return Err(SourceRelationError::Expectation); }
     drop(checked);
     let prefix = replay_origin_joint_testnet(reader, max_blocks, max_input_bytes, origin, joint)
         .map_err(SourceRelationError::History)?;

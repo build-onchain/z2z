@@ -50,7 +50,7 @@ contract NativeEthObligationTest {
         _unchanged(obligation, sha256(_statement(obligation)), NativeFinancialVectors.stableJtag(), 0);
     }
 
-    function testConstructorRejectsMissingPinsSchemaNetworkAndOutOfRangeChain() public {
+    function testConstructorRejectsInvalidPinsAndAcceptsLargestVmSupportedChain() public {
         _rejectConstructor(bytes32(0), ORIGIN_PROGRAM, SOURCE_PROGRAM, POLICY, 1, 1);
         _rejectConstructor(FINANCIAL_PROGRAM, bytes32(0), SOURCE_PROGRAM, POLICY, 1, 1);
         _rejectConstructor(FINANCIAL_PROGRAM, ORIGIN_PROGRAM, bytes32(0), POLICY, 1, 1);
@@ -59,11 +59,15 @@ contract NativeEthObligationTest {
         _rejectConstructor(FINANCIAL_PROGRAM, ORIGIN_PROGRAM, SOURCE_PROGRAM, POLICY, 2, 1);
         _rejectConstructor(FINANCIAL_PROGRAM, ORIGIN_PROGRAM, SOURCE_PROGRAM, POLICY, 1, 0);
         _rejectConstructor(FINANCIAL_PROGRAM, ORIGIN_PROGRAM, SOURCE_PROGRAM, POLICY, 1, 2);
-        uint256 chain = block.chainid;
+        uint256 chain = _obligation().chainId();
         VM.chainId(0);
         _rejectConstructor(FINANCIAL_PROGRAM, ORIGIN_PROGRAM, SOURCE_PROGRAM, POLICY, 1, 1);
-        VM.chainId(uint256(type(uint64).max) + 1);
-        _rejectConstructor(FINANCIAL_PROGRAM, ORIGIN_PROGRAM, SOURCE_PROGRAM, POLICY, 1, 1);
+        // This Foundry VM requires chain < 2^64-1. The contract's >u64
+        // rejection cannot be exercised here; test the highest permitted ID.
+        VM.chainId(uint256(type(uint64).max) - 1);
+        (address deployed,) = _construct(FINANCIAL_PROGRAM, ORIGIN_PROGRAM, SOURCE_PROGRAM, POLICY, 1, 1);
+        require(deployed != address(0) && NativeEthObligation(deployed).chainId() == type(uint64).max - 1,
+            "largest VM-supported chain rejected");
         VM.chainId(chain);
     }
 
@@ -195,7 +199,9 @@ contract NativeEthObligationTest {
         bytes memory raw = _statement(obligation);
         bytes memory boundary = NativeFinancialVectors.boundary();
         bytes memory proof = _proof(PROOF_SELECTOR, 0, VK_ROOT);
-        uint256 chain = block.chainid;
+        // CHAINID may be recomputed across cheatcode calls by the optimizer.
+        // The actual deployed immutable getter preserves the original ID.
+        uint256 chain = obligation.chainId();
         VM.chainId(chain + 1);
         _rejectArm(obligation, raw, boundary, proof, proof, proof, AMOUNT, NativeEthObligation.InvalidDeployment.selector);
         _rejectResolve(obligation, raw, boundary, 1, QUOTED, proof, NativeEthObligation.InvalidDeployment.selector);

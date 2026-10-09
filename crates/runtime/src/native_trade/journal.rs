@@ -228,6 +228,8 @@ impl NativeTradeStore {
         expected.validate()?;
         let mut transaction = self.lock_scope(selection).await?;
         let quote = self.checked_quote(&mut transaction, selection, expected).await?;
+        if quote.stopped { return Err(NativeTradeError::Stopped); }
+        if quote.phase != QuotePhase::Agreed { return Err(NativeTradeError::State); }
         if let Some(stored) = self.operation_row(&mut transaction, &quote, binding.op_id).await? {
             if stored.binding != binding { return Err(NativeTradeError::Conflict); }
             // Exact retry only reads the retained state; it never re-prepares Unknown.
@@ -235,8 +237,6 @@ impl NativeTradeStore {
             transaction.commit().await?;
             return self.operation_readback(&snapshot).await;
         }
-        if quote.stopped { return Err(NativeTradeError::Stopped); }
-        if quote.phase != QuotePhase::Agreed { return Err(NativeTradeError::State); }
         let next = quote.cursor.advance(false)?;
         require_one(scoped(sqlx::query(&self.queries.insert_operation), selection)
             .bind(binding.op_id.as_slice()).bind(binding.context_digest.as_slice()).bind(binding.deployment_digest.as_slice())
@@ -279,7 +279,7 @@ impl NativeTradeStore {
             require_one(scoped(sqlx::query(&self.queries.insert_release), selection).bind(op_id.as_slice())
                 .bind(capsule_digest.as_slice()).bind(next.version as i64)
                 .execute(&mut *transaction).await?.rows_affected())?;
-            self.update_operation(&mut transaction, &quote, &stored, next, OperationState::Released, Some(capsule_digest), None).await?;
+            self.update_operation(&mut transaction, &stored, next, OperationState::Released, Some(capsule_digest), None).await?;
             self.bump_quote(&mut transaction, &quote, next, quote.stopped).await?;
             let quote = self.checked_quote(&mut transaction, selection, next).await?;
             let released = self.operation_row(&mut transaction, &quote, op_id).await?.ok_or_else(invalid_record)?;
@@ -336,17 +336,12 @@ impl NativeTradeStore {
         let mut transaction = self.lock_scope(selection).await?;
         let quote = self.checked_quote(&mut transaction, selection, expected).await?;
         let stored = self.operation_row(&mut transaction, &quote, op_id).await?.ok_or(NativeTradeError::Missing)?;
-        let target = if submitted.is_some() { OperationState::Submitted } else { OperationState::Unknown };
-        if submitted.is_some_and(|hash| stored.tx_hash.is_some_and(|old| old != hash)) { return Err(NativeTradeError::Conflict); }
-        let snapshot = if stored.state == target {
+        let (target, hash, changed) = operation_transition(stored.state, stored.tx_hash, submitted)?;
+        let snapshot = if !changed {
             stored.snapshot(quote.cursor)
         } else {
-            if (submitted.is_some() && !stored.state.can_submit()) || (submitted.is_none() && !stored.state.can_mark_unknown()) {
-                return Err(NativeTradeError::State);
-            }
             let next = quote.cursor.advance(false)?;
-            let hash = submitted.or(stored.tx_hash);
-            self.update_operation(&mut transaction, &quote, &stored, next, target, stored.capsule_digest, hash).await?;
+            self.update_operation(&mut transaction, &stored, next, target, stored.capsule_digest, hash).await?;
             self.bump_quote(&mut transaction, &quote, next, quote.stopped).await?;
             let quote = self.checked_quote(&mut transaction, selection, next).await?;
             let updated = self.operation_row(&mut transaction, &quote, op_id).await?.ok_or_else(invalid_record)?;
@@ -358,9 +353,9 @@ impl NativeTradeStore {
         self.operation_readback(&snapshot).await
     }
 
-    async fn update_operation(&self, transaction: &mut Transaction<'_, Postgres>, quote: &QuoteSnapshot, stored: &StoredOperation,
+    async fn update_operation(&self, transaction: &mut Transaction<'_, Postgres>, stored: &StoredOperation,
         next: TradeCursor, state: OperationState, capsule: Option<[u8; 32]>, tx_hash: Option<[u8; 32]>) -> Result<(), NativeTradeError> {
-        require_one(scoped(sqlx::query(&self.queries.update_operation), &quote.selection).bind(stored.binding.op_id.as_slice())
+        require_one(scoped(sqlx::query(&self.queries.update_operation), &stored.selection).bind(stored.binding.op_id.as_slice())
             .bind(state as i16).bind(capsule.as_ref().map(|digest| digest.as_slice())).bind(tx_hash.as_ref().map(|hash| hash.as_slice()))
             .bind(next.version as i64).bind(next.generation as i64).bind(stored.cursor.version as i64).bind(stored.cursor.generation as i64)
             .execute(&mut **transaction).await?.rows_affected())
@@ -450,6 +445,18 @@ pub(super) fn decode_operation_state(code: i16, capsule: Option<[u8; 32]>, tx_ha
     }
 }
 
+pub(super) fn operation_transition(state: OperationState, retained: Option<[u8; 32]>, submitted: Option<[u8; 32]>)
+    -> Result<(OperationState, Option<[u8; 32]>, bool), NativeTradeError> {
+    if submitted == Some([0; 32]) { return Err(NativeTradeError::Binding); }
+    if submitted.is_some_and(|hash| retained.is_some_and(|old| old != hash)) { return Err(NativeTradeError::Conflict); }
+    let target = if submitted.is_some() { OperationState::Submitted } else { OperationState::Unknown };
+    let changed = state != target;
+    if changed && ((submitted.is_some() && !state.can_submit()) || (submitted.is_none() && !state.can_mark_unknown())) {
+        return Err(NativeTradeError::State);
+    }
+    Ok((target, submitted.or(retained), changed))
+}
+
 fn id(bytes: &[u8]) -> Result<[u8; 32], NativeTradeError> {
     let id = <[u8; 32]>::try_from(bytes).map_err(|_| invalid_record())?;
     if id == [0; 32] { return Err(invalid_record()); }
@@ -475,4 +482,24 @@ fn role(code: i16) -> Result<NativeRole, NativeTradeError> {
 fn same_scope(row: &PgRow, selection: &QuoteSelection) -> Result<bool, NativeTradeError> {
     Ok(id(row.try_get("owner_scope")?)? == selection.owner_scope && id(row.try_get("session_id")?)? == selection.session_id
         && id(row.try_get("quote_id")?)? == selection.quote_id && role(row.try_get("local_role")?)? == selection.local_role)
+}
+
+#[cfg(test)]
+mod record_checks {
+    use super::*;
+
+    #[test]
+    fn persisted_ids_counters_and_roles_fail_closed_without_sql() {
+        assert_eq!(id(&[1; 31]), Err(invalid_record()));
+        assert_eq!(id(&[1; 33]), Err(invalid_record()));
+        assert_eq!(id(&[0; 32]), Err(invalid_record()));
+        assert_eq!(id(&[1; 32]).unwrap(), [1; 32]);
+        for value in [i64::MIN, -1, 0] { assert_eq!(positive(value), Err(invalid_record())); }
+        assert_eq!(positive(i64::MAX).unwrap(), i64::MAX as u64);
+        for value in [-1, 0, i64::from(u32::MAX) + 1] { assert_eq!(sequence(value), Err(invalid_record())); }
+        assert_eq!(sequence(i64::from(u32::MAX)).unwrap(), u32::MAX);
+        for value in [-1, 2, i16::MAX] { assert_eq!(role(value), Err(invalid_record())); }
+        assert_eq!(role(0).unwrap(), NativeRole::User);
+        assert_eq!(role(1).unwrap(), NativeRole::Solver);
+    }
 }

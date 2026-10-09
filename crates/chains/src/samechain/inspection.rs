@@ -557,40 +557,49 @@ impl SamechainInspectionClient {
     pub(crate) async fn request<T: for<'de> Deserialize<'de>>(
         &self, method: &str, params: serde_json::Value, digests: &mut Vec<[u8; 32]>,
     ) -> Result<T, InspectionError> {
-        let id = digests.len() as u64 + 1;
-        let mut response = self.client.post(self.endpoint.as_str())
-            .json(&json!({"jsonrpc":"2.0", "id":id, "method":method, "params":params}))
-            .send().await.map_err(|_| InspectionError::Transport)?;
-        if !response.status().is_success() {
-            return Err(InspectionError::HttpStatus(response.status().as_u16()));
-        }
-        if response.headers().contains_key(reqwest::header::CONTENT_ENCODING) {
-            return Err(InspectionError::MalformedResponse);
-        }
-        let length = response.content_length();
-        if length.is_some_and(|length| length > MAX_RESPONSE_BYTES as u64) {
+        rpc_request(&self.client, &self.endpoint, method, params, digests).await
+    }
+}
+
+// Shared concrete HTTP framing for the two bounded target inspectors. Typed
+// results are decoded from raw bytes before any JSON Value can erase duplicates.
+pub(crate) async fn rpc_request<T: for<'de> Deserialize<'de>>(
+    client: &reqwest::Client, endpoint: &Url, method: &str,
+    params: serde_json::Value, digests: &mut Vec<[u8; 32]>,
+) -> Result<T, InspectionError> {
+    let id = digests.len() as u64 + 1;
+    let mut response = client.post(endpoint.as_str())
+        .json(&json!({"jsonrpc":"2.0", "id":id, "method":method, "params":params}))
+        .send().await.map_err(|_| InspectionError::Transport)?;
+    if !response.status().is_success() {
+        return Err(InspectionError::HttpStatus(response.status().as_u16()));
+    }
+    if response.headers().contains_key(reqwest::header::CONTENT_ENCODING) {
+        return Err(InspectionError::MalformedResponse);
+    }
+    let length = response.content_length();
+    if length.is_some_and(|length| length > MAX_RESPONSE_BYTES as u64) {
+        return Err(InspectionError::ResponseTooLarge);
+    }
+    let mut bytes = Vec::with_capacity(length.map_or(MAX_RESPONSE_BYTES, |length| length as usize));
+    while let Some(chunk) = response.chunk().await.map_err(|_| InspectionError::Transport)? {
+        if chunk.len() > MAX_RESPONSE_BYTES - bytes.len() {
             return Err(InspectionError::ResponseTooLarge);
         }
-        let mut bytes = Vec::with_capacity(length.map_or(MAX_RESPONSE_BYTES, |length| length as usize));
-        while let Some(chunk) = response.chunk().await.map_err(|_| InspectionError::Transport)? {
-            if chunk.len() > MAX_RESPONSE_BYTES - bytes.len() {
-                return Err(InspectionError::ResponseTooLarge);
-            }
-            bytes.extend_from_slice(&chunk);
-        }
-        let envelope: Envelope<T> = serde_json::from_slice(&bytes)
-            .map_err(|_| InspectionError::MalformedResponse)?;
-        if envelope.jsonrpc != "2.0" || envelope.id != id {
-            return Err(InspectionError::MalformedResponse);
-        }
-        let result = match (envelope.result, envelope.error) {
-            (Field::Present(result), Field::Missing) => result,
-            (Field::Missing, Field::Present(error)) => return Err(InspectionError::RpcRejected(error.code)),
-            _ => return Err(InspectionError::MalformedResponse),
-        };
-        digests.push(Sha256::digest(&bytes).into());
-        Ok(result)
+        bytes.extend_from_slice(&chunk);
     }
+    let envelope: Envelope<T> = serde_json::from_slice(&bytes)
+        .map_err(|_| InspectionError::MalformedResponse)?;
+    if envelope.jsonrpc != "2.0" || envelope.id != id {
+        return Err(InspectionError::MalformedResponse);
+    }
+    let result = match (envelope.result, envelope.error) {
+        (Field::Present(result), Field::Missing) => result,
+        (Field::Missing, Field::Present(error)) => return Err(InspectionError::RpcRejected(error.code)),
+        _ => return Err(InspectionError::MalformedResponse),
+    };
+    digests.push(Sha256::digest(&bytes).into());
+    Ok(result)
 }
 
 struct LogResult {
@@ -927,7 +936,7 @@ pub(crate) fn abi_address(word: &[u8]) -> Result<[u8; 20], InspectionError> {
     word[12..].try_into().map_err(|_| InspectionError::MalformedResponse)
 }
 
-fn abi_bool(word: &[u8]) -> Result<bool, InspectionError> {
+pub(crate) fn abi_bool(word: &[u8]) -> Result<bool, InspectionError> {
     match abi_uint(word, 1)? {
         0 => Ok(false),
         1 => Ok(true),

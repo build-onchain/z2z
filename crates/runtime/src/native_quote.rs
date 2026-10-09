@@ -1,8 +1,10 @@
 use ed25519_dalek::{Signature, VerifyingKey};
 use sha2::{Digest, Sha256};
 use std::fmt;
+use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
-const SESSION_DOMAIN: &[u8] = b"Z2Z_SESSION\0";
+use crate::node::session;
+
 const AUTH_QUOTE_DOMAIN: &[u8] = b"Z2Z_NATIVE_AUTH_QUOTE\0";
 const QUOTE_DOMAIN: &[u8] = b"Z2Z_NATIVE_QUOTE\0";
 const ROUTE_DOMAIN: &[u8] = b"Z2Z_NATIVE_ROUTE\0";
@@ -12,9 +14,7 @@ const ACCEPT_DOMAIN: &[u8] = b"Z2Z_NATIVE_ACCEPT\0";
 const AGREED_DOMAIN: &[u8] = b"Z2Z_NATIVE_AGREED\0";
 const VERSION: u16 = 1;
 const AUTH_HEADER_BYTES: usize = AUTH_QUOTE_DOMAIN.len() + 2 + (3 * 4);
-const ENVELOPE_HEADER_BYTES: usize = SESSION_DOMAIN.len() + 2 + 2 + (5 * 32) + 1 + (2 * 32) + 4 + 1 + 8 + 4;
-const SIGNATURE_BYTES: usize = 64;
-const ACCEPT_BYTES: usize = ACCEPT_DOMAIN.len() + 2 + 1 + (32 * 5);
+pub(crate) const ACCEPT_BYTES: usize = ACCEPT_DOMAIN.len() + 2 + 1 + (32 * 5);
 pub const QUOTE_BYTES: usize = 3244;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -54,6 +54,13 @@ pub struct QuoteSelection {
     pub quote_id: [u8; 32],
     pub s_offer_id: [u8; 32],
     pub u_trade_intent_id: [u8; 32],
+    /// Independently retained confirmed-session challenges, never taken from quote bytes.
+    pub challenge_i: [u8; 32],
+    pub challenge_r: [u8; 32],
+    /// Exact selected sender slots, including intervening session ACKs/control frames.
+    pub proposal_seq: u32,
+    pub user_acceptance_seq: u32,
+    pub solver_acceptance_seq: u32,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -74,11 +81,13 @@ impl fmt::Display for QuoteError {
 }
 impl std::error::Error for QuoteError {}
 
-/// The canonical, fixed-width quote body. It intentionally exposes no financial
-/// authority: this is a signed coordination terms frame only.
+/// Fixed-width coordination frame. Only its known framing fields are validated.
+/// The remaining 3244-byte layout has no canonical economic schema here: it is
+/// opaque, not a review of amounts, beneficiaries, native Statement commitments,
+/// source validity, settlement authority, anonymity, or privacy guarantees.
 #[derive(Clone, Eq, PartialEq)]
 pub struct QuoteV1 {
-    bytes: [u8; QUOTE_BYTES],
+    bytes: Zeroizing<[u8; QUOTE_BYTES]>,
 }
 
 impl fmt::Debug for QuoteV1 {
@@ -92,21 +101,31 @@ impl QuoteV1 {
         if bytes.len() != QUOTE_BYTES {
             return Err(QuoteError::Encoding);
         }
-        let mut out = [0_u8; QUOTE_BYTES];
+        // Validate borrowed input before copying it into guarded owner memory.
+        let fixed = bytes.try_into().map_err(|_| QuoteError::Encoding)?;
+        validate_quote(fixed)?;
+        let mut out = Zeroizing::new([0_u8; QUOTE_BYTES]);
         out.copy_from_slice(bytes);
-        validate_quote(&out)?;
         Ok(Self { bytes: out })
     }
 
     pub fn as_bytes(&self) -> &[u8; QUOTE_BYTES] { &self.bytes }
 }
 
+impl Zeroize for QuoteV1 {
+    fn zeroize(&mut self) { self.bytes.zeroize(); }
+}
+impl ZeroizeOnDrop for QuoteV1 {}
+impl Drop for QuoteV1 {
+    fn drop(&mut self) { self.zeroize(); }
+}
+
 pub struct AuthenticatedQuote {
     selection: QuoteSelection,
-    proposal: Vec<u8>,
+    proposal: Zeroizing<Vec<u8>>,
     terms: QuoteV1,
-    user_acceptance: Option<Vec<u8>>,
-    solver_acceptance: Option<Vec<u8>>,
+    user_acceptance: Option<Zeroizing<Vec<u8>>>,
+    solver_acceptance: Option<Zeroizing<Vec<u8>>>,
 }
 
 impl fmt::Debug for AuthenticatedQuote {
@@ -135,69 +154,80 @@ impl AuthenticatedQuote {
             return Err(QuoteError::Encoding);
         }
 
-        let p = parse_envelope(proposal, selection, Kind::Proposal, proposal_signer(*selection))?;
-        let terms = QuoteV1::decode(p.body)?;
-        if terms.bytes[19..51] != selection.quote_id || terms.bytes[51..83] != selection.s_offer_id {
-            return Err(QuoteError::Selection);
-        }
-        let route = &terms.bytes[91..303];
-        let deploy = &terms.bytes[303..587];
-        if sha256(route) != selection.chain_context || sha256(deploy) != selection.deployment_context {
-            return Err(QuoteError::Selection);
-        }
-        let q = sha256(terms.as_bytes());
-        let proposal_hash = sha256(proposal);
-
-        let mut user_acceptance = None;
-        let mut solver_acceptance = None;
-        if !user.is_empty() {
-            let a = parse_envelope(user, selection, Kind::Acceptance, selection.initiator_coord_key)?;
-            let accept = parse_accept(a.body)?;
-            if accept.role != NativeRole::User
-                || accept.quote_id != selection.quote_id
-                || accept.q != q
-                || accept.proposal_hash != proposal_hash
-                || accept.intent_id != selection.u_trade_intent_id
-                || accept.predecessor != proposal_hash
-            {
-                return Err(QuoteError::Selection);
-            }
-            user_acceptance = Some(user.to_vec());
-        }
-        if !solver.is_empty() {
-            let a = parse_envelope(solver, selection, Kind::Acceptance, selection.responder_coord_key)?;
-            let accept = parse_accept(a.body)?;
-            let user_hash = user_acceptance.as_deref().map(sha256).ok_or(QuoteError::Encoding)?;
-            if accept.role != NativeRole::Solver
-                || accept.quote_id != selection.quote_id
-                || accept.q != q
-                || accept.proposal_hash != proposal_hash
-                || accept.intent_id != selection.u_trade_intent_id
-                || accept.predecessor != user_hash
-            {
-                return Err(QuoteError::Selection);
-            }
-            solver_acceptance = Some(solver.to_vec());
-        }
-        if (user_acceptance.is_some() || solver_acceptance.is_some()) && selection.u_trade_intent_id == [0; 32] {
-            return Err(QuoteError::Selection);
-        }
-        Ok(Self {
-            selection: *selection,
-            proposal: proposal.to_vec(),
-            terms,
-            user_acceptance,
-            solver_acceptance,
-        })
+        let mut quote = Self::from_proposal(proposal, selection)?;
+        if !user.is_empty() { quote = quote.with_acceptance(user)?; }
+        if !solver.is_empty() { quote = quote.with_acceptance(solver)?; }
+        Ok(quote)
     }
 
-    pub fn encode(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(AUTH_HEADER_BYTES + self.proposal.len() + self.user_acceptance.as_ref().map_or(0, Vec::len) + self.solver_acceptance.as_ref().map_or(0, Vec::len) + 12);
+    /// Verified proposal constructor for the actual session consumer and custody restore.
+    pub fn from_proposal(frame: &[u8], selection: &QuoteSelection) -> Result<Self, QuoteError> {
+        validate_selection(selection)?;
+        let envelope = parse_envelope(frame, selection, session::kind::NATIVE_QUOTE,
+            selection.responder_coord_key, selection.proposal_seq)?;
+        let terms = QuoteV1::decode(&envelope.body)?;
+        if terms.bytes[19..51] != selection.quote_id || terms.bytes[51..83] != selection.s_offer_id
+            || sha256(&terms.bytes[91..303]) != selection.chain_context
+            || sha256(&terms.bytes[303..587]) != selection.deployment_context
+        {
+            return Err(QuoteError::Selection);
+        }
+        Ok(Self { selection: *selection, proposal: Zeroizing::new(frame.to_vec()),
+            terms, user_acceptance: None, solver_acceptance: None })
+    }
+
+    /// Append exactly the next selected, genuinely signed acceptance. Errors wipe
+    /// the consumed private transcript; no partly advanced quote escapes.
+    pub fn with_acceptance(mut self, frame: &[u8]) -> Result<Self, QuoteError> {
+        let (role, signer, sequence, predecessor) = match self.phase() {
+            QuotePhase::Proposal => (NativeRole::User, self.selection.initiator_coord_key,
+                self.selection.user_acceptance_seq, self.proposal_hash()),
+            QuotePhase::UserAcceptance => (NativeRole::Solver, self.selection.responder_coord_key,
+                self.selection.solver_acceptance_seq, self.user_acceptance_hash().ok_or(QuoteError::Encoding)?),
+            QuotePhase::Agreed => return Err(QuoteError::Selection),
+        };
+        let envelope = parse_envelope(frame, &self.selection, session::kind::NATIVE_ACCEPTANCE, signer, sequence)?;
+        let accept = parse_accept(&envelope.body)?;
+        if accept.role != role || accept.quote_id != self.selection.quote_id
+            || accept.q != self.digest() || accept.proposal_hash != self.proposal_hash()
+            || accept.intent_id != self.selection.u_trade_intent_id || accept.predecessor != predecessor
+        {
+            return Err(QuoteError::Selection);
+        }
+        let owned = Zeroizing::new(frame.to_vec());
+        match role {
+            NativeRole::User => self.user_acceptance = Some(owned),
+            NativeRole::Solver => self.solver_acceptance = Some(owned),
+        }
+        Ok(self)
+    }
+
+    /// Unsigned coordination acceptance bytes; only an explicit local caller may
+    /// choose to sign them. An incoming proposal or transport ACK never does so.
+    pub fn acceptance_body(&self, role: NativeRole) -> Result<Zeroizing<Vec<u8>>, QuoteError> {
+        let predecessor = match (self.phase(), role) {
+            (QuotePhase::Proposal, NativeRole::User) => self.proposal_hash(),
+            (QuotePhase::UserAcceptance, NativeRole::Solver) => self.user_acceptance_hash().ok_or(QuoteError::Encoding)?,
+            _ => return Err(QuoteError::Selection),
+        };
+        let mut body = Zeroizing::new(Vec::with_capacity(ACCEPT_BYTES));
+        body.extend_from_slice(ACCEPT_DOMAIN);
+        body.extend_from_slice(&VERSION.to_be_bytes());
+        body.push(role as u8);
+        for field in [self.selection.quote_id, self.digest(), self.proposal_hash(),
+            self.selection.u_trade_intent_id, predecessor] { body.extend_from_slice(&field); }
+        Ok(body)
+    }
+
+    pub fn encode(&self) -> Zeroizing<Vec<u8>> {
+        let mut out = Zeroizing::new(Vec::with_capacity(AUTH_HEADER_BYTES + self.proposal.len()
+            + self.user_acceptance.as_ref().map_or(0, |frame| frame.len())
+            + self.solver_acceptance.as_ref().map_or(0, |frame| frame.len())));
         out.extend_from_slice(AUTH_QUOTE_DOMAIN);
         out.extend_from_slice(&VERSION.to_be_bytes());
         append_frame(&mut out, &self.proposal);
-        append_frame(&mut out, self.user_acceptance.as_deref().unwrap_or(&[]));
-        append_frame(&mut out, self.solver_acceptance.as_deref().unwrap_or(&[]));
+        append_frame(&mut out, self.user_acceptance());
+        append_frame(&mut out, self.solver_acceptance());
         out
     }
 
@@ -227,50 +257,55 @@ impl AuthenticatedQuote {
         }
     }
     pub fn proposal_hash(&self) -> [u8; 32] { sha256(&self.proposal) }
-    pub fn user_acceptance_hash(&self) -> Option<[u8; 32]> { self.user_acceptance.as_deref().map(sha256) }
-    pub fn solver_acceptance_hash(&self) -> Option<[u8; 32]> { self.solver_acceptance.as_deref().map(sha256) }
+    pub fn user_acceptance_hash(&self) -> Option<[u8; 32]> { self.user_acceptance.as_ref().map(|frame| sha256(frame)) }
+    pub fn solver_acceptance_hash(&self) -> Option<[u8; 32]> { self.solver_acceptance.as_ref().map(|frame| sha256(frame)) }
+    pub fn proposal(&self) -> &[u8] { &self.proposal }
+    pub fn user_acceptance(&self) -> &[u8] { self.user_acceptance.as_ref().map_or(&[], |frame| frame.as_slice()) }
+    pub fn solver_acceptance(&self) -> &[u8] { self.solver_acceptance.as_ref().map_or(&[], |frame| frame.as_slice()) }
 }
 
-#[derive(Clone, Copy)]
-struct ParsedEnvelope<'a> { body: &'a [u8] }
+impl Zeroize for AuthenticatedQuote {
+    fn zeroize(&mut self) {
+        self.proposal.zeroize();
+        self.terms.zeroize();
+        self.user_acceptance.zeroize();
+        self.solver_acceptance.zeroize();
+    }
+}
+impl ZeroizeOnDrop for AuthenticatedQuote {}
+impl Drop for AuthenticatedQuote {
+    fn drop(&mut self) { self.zeroize(); }
+}
 #[derive(Clone, Copy)]
 struct ParsedAccept { role: NativeRole, quote_id: [u8; 32], q: [u8; 32], proposal_hash: [u8; 32], intent_id: [u8; 32], predecessor: [u8; 32] }
-#[derive(Clone, Copy)]
-enum Kind { Proposal, Acceptance }
-
-fn proposal_signer(selection: QuoteSelection) -> [u8; 32] { selection.responder_coord_key }
 
 fn append_frame(out: &mut Vec<u8>, frame: &[u8]) {
     out.extend_from_slice(&(frame.len() as u32).to_be_bytes());
     out.extend_from_slice(frame);
 }
 
-fn parse_envelope<'a>(bytes: &'a [u8], selection: &QuoteSelection, kind: Kind, signer: [u8; 32]) -> Result<ParsedEnvelope<'a>, QuoteError> {
-    if bytes.len() < ENVELOPE_HEADER_BYTES + SIGNATURE_BYTES || &bytes[..SESSION_DOMAIN.len()] != SESSION_DOMAIN {
-        return Err(QuoteError::Encoding);
-    }
-    let mut r = Reader::new(bytes);
-    if r.take(SESSION_DOMAIN.len())? != SESSION_DOMAIN || r.u16()? != VERSION || r.u16()? != 5 {
+fn parse_envelope(bytes: &[u8], selection: &QuoteSelection, kind: u8,
+    signer: [u8; 32], sequence: u32) -> Result<session::Envelope, QuoteError> {
+    // One parser for live and restored transcripts. No wall-clock freshness is
+    // applied on durable restore; live admission retains the existing skew gate.
+    let envelope = session::parse(bytes).map_err(|_| QuoteError::Encoding)?;
+    if envelope.lane_id != 5 || envelope.kind != kind || envelope.role_map != 0
+        || envelope.chain_context_digest != selection.chain_context
+        || envelope.deployment_digest != selection.deployment_context
+        || envelope.session_id != selection.session_id
+        || envelope.initiator_coord_key != selection.initiator_coord_key
+        || envelope.responder_coord_key != selection.responder_coord_key
+        || envelope.challenge_i != selection.challenge_i || envelope.challenge_r != selection.challenge_r
+        || envelope.seq != sequence
+    {
         return Err(QuoteError::Selection);
     }
-    if r.take(32)? != selection.chain_context || r.take(32)? != selection.deployment_context || r.take(32)? != selection.session_id
-        || r.take(32)? != selection.initiator_coord_key || r.take(32)? != selection.responder_coord_key || r.u8()? != 0
-    { return Err(QuoteError::Selection); }
-    if r.take(32)? == &[0; 32] || r.take(32)? == &[0; 32] { return Err(QuoteError::Encoding); }
-    let seq = r.u32()?;
-    let expected_kind = match kind { Kind::Proposal => 13, Kind::Acceptance => 14 };
-    if r.u8()? != expected_kind || r.u64()? == 0 { return Err(QuoteError::Encoding); }
-    let body_len = r.u32()? as usize;
-    let expected_body = match kind { Kind::Proposal => QUOTE_BYTES, Kind::Acceptance => ACCEPT_BYTES };
-    if body_len != expected_body || bytes.len() != ENVELOPE_HEADER_BYTES + body_len + SIGNATURE_BYTES || (matches!(kind, Kind::Proposal) && seq != 1) || (matches!(kind, Kind::Acceptance) && seq != 2) {
-        return Err(QuoteError::Encoding);
-    }
-    let body = r.take(body_len)?;
-    let signature = r.take(SIGNATURE_BYTES)?;
-    r.finish()?;
+    if envelope.sent_at_unix == 0 { return Err(QuoteError::Encoding); }
     let key = VerifyingKey::from_bytes(&signer).map_err(|_| QuoteError::Authentication)?;
-    key.verify_strict(&bytes[..ENVELOPE_HEADER_BYTES + body_len], &Signature::from_bytes(signature.try_into().map_err(|_| QuoteError::Encoding)?)).map_err(|_| QuoteError::Authentication)?;
-    Ok(ParsedEnvelope { body })
+    key.verify_strict(&bytes[..bytes.len() - session::SIGNATURE_LEN], &Signature::from_bytes(&envelope.signature))
+        .map_err(|_| QuoteError::Authentication)?;
+    session::validate_body(&envelope).map_err(|_| QuoteError::Encoding)?;
+    Ok(envelope)
 }
 
 fn parse_accept(body: &[u8]) -> Result<ParsedAccept, QuoteError> {
@@ -287,23 +322,39 @@ fn parse_accept(body: &[u8]) -> Result<ParsedAccept, QuoteError> {
     Ok(ParsedAccept { role, quote_id, q, proposal_hash, intent_id, predecessor })
 }
 
-fn validate_quote(bytes: &[u8; QUOTE_BYTES]) -> Result<(), QuoteError> {
-    if &bytes[..QUOTE_DOMAIN.len()] != QUOTE_DOMAIN
-        || u16::from_be_bytes(bytes[QUOTE_DOMAIN.len()..QUOTE_DOMAIN.len() + 2].try_into().unwrap()) != VERSION
-    { return Err(QuoteError::Encoding); }
-    if &bytes[91..91 + ROUTE_DOMAIN.len()] != ROUTE_DOMAIN
-        || &bytes[303..303 + DEPLOY_DOMAIN.len()] != DEPLOY_DOMAIN
-        || &bytes[587..587 + WINDOW_DOMAIN.len()] != WINDOW_DOMAIN
-    { return Err(QuoteError::Encoding); }
+pub(crate) fn validate_accept(body: &[u8]) -> Result<(), QuoteError> {
+    parse_accept(body).map(|_| ())
+}
+
+pub(crate) fn validate_quote(bytes: &[u8; QUOTE_BYTES]) -> Result<(), QuoteError> {
+    for (offset, domain) in [(0, QUOTE_DOMAIN), (91, ROUTE_DOMAIN), (303, DEPLOY_DOMAIN), (587, WINDOW_DOMAIN)] {
+        if &bytes[offset..offset + domain.len()] != domain
+            || bytes[offset + domain.len()..offset + domain.len() + 2] != VERSION.to_be_bytes()
+        {
+            return Err(QuoteError::Encoding);
+        }
+    }
     if bytes[19..51] == [0; 32] || bytes[51..83] == [0; 32]
-        || u64::from_be_bytes(bytes[83..91].try_into().unwrap()) == 0
-    { return Err(QuoteError::Encoding); }
+        || u64::from_be_bytes(bytes[83..91].try_into().expect("fixed frame")) == 0
+    {
+        return Err(QuoteError::Encoding);
+    }
+    // Deliberately do not infer unknown economic fields or Statement commitments.
     Ok(())
 }
 
-fn validate_selection(selection: &QuoteSelection) -> Result<(), QuoteError> {
-    for field in [&selection.owner_scope, &selection.session_id, &selection.initiator_coord_key, &selection.responder_coord_key, &selection.chain_context, &selection.deployment_context, &selection.quote_id, &selection.s_offer_id, &selection.u_trade_intent_id] {
+pub(crate) fn validate_selection(selection: &QuoteSelection) -> Result<(), QuoteError> {
+    for field in [&selection.owner_scope, &selection.session_id, &selection.initiator_coord_key,
+        &selection.responder_coord_key, &selection.chain_context, &selection.deployment_context,
+        &selection.quote_id, &selection.s_offer_id, &selection.u_trade_intent_id,
+        &selection.challenge_i, &selection.challenge_r] {
         if *field == [0; 32] { return Err(QuoteError::Selection); }
+    }
+    if selection.initiator_coord_key == selection.responder_coord_key
+        || selection.proposal_seq == 0 || selection.user_acceptance_seq < 2
+        || selection.solver_acceptance_seq <= selection.proposal_seq
+    {
+        return Err(QuoteError::Selection);
     }
     Ok(())
 }
@@ -318,7 +369,6 @@ impl<'a> Reader<'a> {
     fn u8(&mut self) -> Result<u8, QuoteError> { Ok(self.take(1)?[0]) }
     fn u16(&mut self) -> Result<u16, QuoteError> { Ok(u16::from_be_bytes(self.array()?)) }
     fn u32(&mut self) -> Result<u32, QuoteError> { Ok(u32::from_be_bytes(self.array()?)) }
-    fn u64(&mut self) -> Result<u64, QuoteError> { Ok(u64::from_be_bytes(self.array()?)) }
     fn frame(&mut self) -> Result<&'a [u8], QuoteError> { let len = self.u32()? as usize; if len > 128 * 1024 { return Err(QuoteError::Encoding); } self.take(len) }
     fn finish(self) -> Result<(), QuoteError> { if self.bytes.is_empty() { Ok(()) } else { Err(QuoteError::Encoding) } }
 }
@@ -326,59 +376,27 @@ impl<'a> Reader<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ed25519_dalek::{Signer, SigningKey};
 
     #[test]
-    fn signed_proposal_decodes_and_round_trips() {
-        let solver = SigningKey::from_bytes(&[4; 32]);
-        let initiator = SigningKey::from_bytes(&[3; 32]);
-        let mut quote = [0_u8; QUOTE_BYTES];
-        quote[..QUOTE_DOMAIN.len()].copy_from_slice(QUOTE_DOMAIN);
-        quote[QUOTE_DOMAIN.len()..QUOTE_DOMAIN.len() + 2].copy_from_slice(&VERSION.to_be_bytes());
-        quote[19..51].copy_from_slice(&[8; 32]);
-        quote[51..83].copy_from_slice(&[9; 32]);
-        quote[83..91].copy_from_slice(&1_791_504_000_u64.to_be_bytes());
-        quote[91..91 + ROUTE_DOMAIN.len()].copy_from_slice(ROUTE_DOMAIN);
-        quote[91 + ROUTE_DOMAIN.len()..91 + ROUTE_DOMAIN.len() + 2].copy_from_slice(&VERSION.to_be_bytes());
-        quote[303..303 + DEPLOY_DOMAIN.len()].copy_from_slice(DEPLOY_DOMAIN);
-        quote[303 + DEPLOY_DOMAIN.len()..303 + DEPLOY_DOMAIN.len() + 2].copy_from_slice(&VERSION.to_be_bytes());
-        quote[587..587 + WINDOW_DOMAIN.len()].copy_from_slice(WINDOW_DOMAIN);
-        quote[587 + WINDOW_DOMAIN.len()..587 + WINDOW_DOMAIN.len() + 2].copy_from_slice(&VERSION.to_be_bytes());
-        let chain_context = sha256(&quote[91..303]);
-        let deployment_context = sha256(&quote[303..587]);
-        let selection = QuoteSelection {
-            local_role: NativeRole::User,
-            owner_scope: [1; 32], session_id: [2; 32],
-            initiator_coord_key: *initiator.verifying_key().as_bytes(),
-            responder_coord_key: *solver.verifying_key().as_bytes(),
-            chain_context, deployment_context,
-            quote_id: [8; 32], s_offer_id: [9; 32], u_trade_intent_id: [10; 32],
-        };
-        let mut proposal = Vec::new();
-        proposal.extend_from_slice(SESSION_DOMAIN);
-        proposal.extend_from_slice(&VERSION.to_be_bytes());
-        proposal.extend_from_slice(&5_u16.to_be_bytes());
-        for field in [selection.chain_context, selection.deployment_context, selection.session_id,
-            selection.initiator_coord_key, selection.responder_coord_key] { proposal.extend_from_slice(&field); }
-        proposal.push(0);
-        proposal.extend_from_slice(&[11; 32]); proposal.extend_from_slice(&[12; 32]);
-        proposal.extend_from_slice(&1_u32.to_be_bytes()); proposal.push(13);
-        proposal.extend_from_slice(&1_791_504_000_u64.to_be_bytes());
-        proposal.extend_from_slice(&(QUOTE_BYTES as u32).to_be_bytes());
-        proposal.extend_from_slice(&quote);
-        proposal.extend_from_slice(&solver.sign(&proposal).to_bytes());
-        let mut bundle = Vec::new();
-        bundle.extend_from_slice(AUTH_QUOTE_DOMAIN);
-        bundle.extend_from_slice(&VERSION.to_be_bytes());
-        append_frame(&mut bundle, &proposal);
-        append_frame(&mut bundle, &[]);
-        append_frame(&mut bundle, &[]);
-        let decoded = AuthenticatedQuote::decode(&bundle, &selection).expect("signed proposal");
-        assert_eq!(decoded.encode(), bundle);
-        assert_eq!(decoded.phase(), QuotePhase::Proposal);
-        assert_eq!(decoded.digest(), sha256(&quote));
-        assert_eq!(decoded.proposal_hash(), sha256(&proposal));
-        assert_eq!(decoded.user_acceptance_hash(), None);
-        assert_eq!(decoded.solver_acceptance_hash(), None);
+    fn owned_terms_and_frames_have_guarded_erasure_contracts() {
+        fn guarded<T: ZeroizeOnDrop>() {}
+        guarded::<QuoteV1>();
+        guarded::<AuthenticatedQuote>();
+        let mut bytes = [0; QUOTE_BYTES];
+        for (offset, domain) in [(0, QUOTE_DOMAIN), (91, ROUTE_DOMAIN), (303, DEPLOY_DOMAIN), (587, WINDOW_DOMAIN)] {
+            bytes[offset..offset + domain.len()].copy_from_slice(domain);
+            bytes[offset + domain.len()..offset + domain.len() + 2].copy_from_slice(&VERSION.to_be_bytes());
+        }
+        bytes[19..83].fill(1);
+        bytes[90] = 1;
+        let mut terms = QuoteV1::decode(&bytes).unwrap();
+        terms.zeroize();
+        assert!(terms.as_bytes().iter().all(|byte| *byte == 0));
+        // Every owned frame uses this allocation guard, including error exits.
+        let frames: [Zeroizing<Vec<u8>>; 3] = std::array::from_fn(|_| Zeroizing::new(vec![42; 8]));
+        for mut frame in frames {
+            frame.zeroize();
+            assert!(frame.iter().all(|byte| *byte == 0));
+        }
     }
 }

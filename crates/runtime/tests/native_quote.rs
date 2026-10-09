@@ -53,7 +53,8 @@ fn envelope(selection: &QuoteSelection, signer: &SigningKey, seq: u32, kind: u8,
     bytes.extend_from_slice(&1_u64.to_be_bytes());
     bytes.extend_from_slice(&(body.len() as u32).to_be_bytes());
     bytes.extend_from_slice(body);
-    bytes.extend_from_slice(&signer.sign(&bytes).to_bytes());
+    let signature = signer.sign(&bytes).to_bytes();
+    bytes.extend_from_slice(&signature);
     bytes
 }
 

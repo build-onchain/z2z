@@ -71,16 +71,18 @@ impl QuoteSnapshot {
 
     /// Only the next authenticated predecessor can extend the immutable proposal.
     fn accept_quote(&self, quote: &AuthenticatedQuote) -> Result<bool, NativeTradeError> {
-        if self.selection != *quote.selection() || self.q != quote.digest() || self.proposal_hash != quote.proposal_hash()
-            || self.user_acceptance_hash.is_some_and(|hash| quote.user_acceptance_hash() != Some(hash))
+        if self.selection != *quote.selection() || self.q != quote.digest() || self.proposal_hash != quote.proposal_hash() {
+            return Err(NativeTradeError::Conflict);
+        }
+        if self.stopped { return Err(NativeTradeError::Stopped); }
+        let advance = self.phase != quote.phase();
+        if advance && phase_code(quote.phase()) != phase_code(self.phase) + 1 { return Err(NativeTradeError::State); }
+        if self.user_acceptance_hash.is_some_and(|hash| quote.user_acceptance_hash() != Some(hash))
             || self.solver_acceptance_hash.is_some_and(|hash| quote.solver_acceptance_hash() != Some(hash))
             || self.agreement_digest.is_some_and(|hash| quote.agreement_digest() != Some(hash)) {
             return Err(NativeTradeError::Conflict);
         }
-        if self.stopped { return Err(NativeTradeError::Stopped); }
-        if self.phase == quote.phase() { return Ok(false); }
-        if phase_code(quote.phase()) != phase_code(self.phase) + 1 { return Err(NativeTradeError::State); }
-        Ok(true)
+        Ok(advance)
     }
 
     fn matches_quote(&self, quote: &AuthenticatedQuote) -> bool {

@@ -1,14 +1,14 @@
 # Ziquid
 
-V1 is a **P2P `z2z-node` with CLI-only samechain trading**, maker online and fresh consent from both parties for every fill, owner-local proving, and full company-off recovery. **The whole pipeline includes native ZEC:** Zcash/ZEC is a first-class lane in the whole product, not a later phase. **Current code is incomplete:** real native primitives and an immutable samechain authority do not yet establish an end-to-end funded lifecycle. [Native implementation status](docs/NATIVE-IMPLEMENTATION-STATUS.md) owns exercised evidence and remaining proof, asset-transfer, recovery and resource qualification.
+First-release scope is one bilateral full-quote **native shielded ZEC testnet → ETH** route, with selected peers, owner-local capabilities and a user-owned four-screen frontend/local companion. [PRODUCT](docs/PRODUCT.md) and the active [R1–R10 roadmap](docs/Z2Z-V1-ROADMAP.md) supersede older samechain-first/CLI-only release ordering. **Current code is incomplete:** native ETH conditional execution, quote/custody, public calls and bounded observations are implemented, but genuine financial proof acceptance, source/target finality, independent financial recovery and the integrated funded journey remain unqualified. [Native status](docs/NATIVE-IMPLEMENTATION-STATUS.md) owns exact evidence.
 
 **Product definition:** the intended product is a **DEX with its own P2P order market**, RFQ quotes and separately chosen external-venue execution. P2P is part of the DEX, not a peripheral module or an alternative to decentralization; same-chain and native cross-chain relations are settlement constructions for qualified trades. [Unified product hierarchy](docs/PRODUCT.md#p2p-nằm-ở-đâu-trong-dex) separates this product scope from incomplete implementation, strict-private matching and custody/source-authority blockers. Native build priority is unchanged.
 
-**V1 boundary and active lanes:** the **first passing journey is samechain** (Base Sepolia 84532 is the engineering default, owner-overridable). **Native ZEC is an ACTIVE first-class lane (L-ZEC) required for the whole project, not V2**, with pairs ZEC↔{Base, HyperEVM, Solana, NEAR}; wrapped/bridged ZEC never counts as a substitute. **HyperEVM (L-HEVM: spot ships first, Core-spot/perps position claims are active research and are not equivalent to transferring an actual Core position), Solana devnet (L-SOL), NEAR testnet (L-NEAR) and cross-chain fills (X.CROSSCHAIN: HTLC/CX-1 first, proof-verified release CX-2 active research, all pairs in parallel, no atomicity or privacy claim) are active parallel obligations.** A first passing samechain journey is a usable journey, but releasing it does **not** complete the project. Still V2: offline standing-maker multi-fill, GUI (71 stories), hardware wallets, mainnet, Intents/1Click, Raydium/LP/agents/ZSA. V1 requires fresh exact consent for each fill; existing standing-order research is not a V1 delivery claim.
+**Release boundary:** working default is native shielded ZEC testnet → native ETH Base Sepolia, both roles online for agreement, full quote, Offers/Review/Status/Recovery. Samechain trading, wider native pairs, HyperEVM/HyperCore, Solana, NEAR and all-pairs crosschain remain retained backlog/primitives, not additional first-release prerequisites. No wrapped/transparent-ZEC substitute, silent financial/privacy/recovery waiver, deployed readiness or transaction permission follows. Historical lane details below are provenance where superseded.
 
 Ziquid is the chosen local name; Rust packages use `ziquid-*` and the SDK uses `@ziquid/sdk`. The directory is now `ziquid-dex`; the original directory path is a deliberately temporary compatibility symlink for the live OMP session, not a supported API alias. This naming does not claim registry, domain or trademark availability; packages are private/unpublished.
 
-**V1 implementation entry point:** follow the [Z2Z-V1 implementation prompt](docs/Z2Z-V1-IMPLEMENTATION-SYSTEM-PROMPT.md), [consolidated summary](docs/V1-CONSOLIDATED-SUMMARY.md) and [delivery matrix](docs/V1-DELIVERY-MATRIX.md). Kerb source modules are consolidated under native market/custody/runtime and the independent Solana target; the [documentation archive](docs/imports/kerb/README.md) retains provenance, not current V1 instructions or completion evidence.
+**Implementation entry point:** use [PRODUCT](docs/PRODUCT.md), [ARCHITECTURE](docs/ARCHITECTURE.md), the active [R1–R10 roadmap](docs/Z2Z-V1-ROADMAP.md) and [observed status](docs/NATIVE-IMPLEMENTATION-STATUS.md). The [current bounded-seams plan](docs/superpowers/plans/2026-10-09-native-bounded-seams.md) records the implemented journal/ETH interfaces. Earlier samechain prompt/catalog and [Kerb archive](docs/imports/kerb/README.md) retain reusable work and provenance, not current first-release ordering or completion evidence.
 
 **Latest native checkpoint:** finite Zcash source validation reaches NU6.3 height4465025, with independent Ironwood state and complete V4/V5/V6 authorization;4465026 is rejected. Private preparation v3 opens input/payment commitments, derives the deployment-scoped note tag, binds the exact solver-private P/Q export and verifies owner consent before encrypted restart custody. Real native/CPU scenarios execute, but accepted-chain/finality, wrapped financial proofs, S funding authority and atomic target transfers remain incomplete. Retained v1/v2 custody is never rewritten; an authenticated old restore path is an explicit funded-release hold. Exact current evidence and limitations remain in [native status](docs/NATIVE-IMPLEMENTATION-STATUS.md).
 
@@ -61,6 +61,16 @@ ziquid native build-resolve-call --statement PUBLIC_STATEMENT --boundary PUBLIC_
 
 Linux inputs are exact raw public canonical frames: statement638bytes, boundary100, independently selected deployment279 and each SP1 wrapper356. Regular no-follow bounded files only; no stdin, keys, SQL or RPC. `recovery` requires `--cnet 0`; `completion` requires1..=quotedA. JSON returns unsigned calldata, full-width wei, fixed recipients/context and expected journals while proof/deployment/source/finality/backing remain `UNVERIFIED`; signing/submission/financial execution stay false. Header/scalar checks are not cryptographic verification. [Observed evidence](docs/NATIVE-IMPLEMENTATION-STATUS.md#native-eth-unsigned-call-integration--2026-10-09).
 
+### Hash-pinned native ETH observation
+
+```sh
+ziquid native inspect-obligation --deployment PINNED_DEPLOYMENT \
+  --block-hash 0xSELECTED_BLOCK_HASH --endpoint-env PRIVATE_RPC_ENV \
+  --statement PUBLIC_STATEMENT
+```
+
+Statement is optional; no default endpoint or latest block. Every code/call read uses EIP-1898 `blockHash`/`requireCanonical`; actual chain/block/full deployment and runtime hashes must match independent pins. Literal-loopback HTTP requires `--allow-loopback-http`; otherwise HTTPS, without proxy/redirect/retry. Output is `TRUSTED_NODE_AT_SELECTED_BLOCK`, never source/target finality or proof/transfer verification. A reported consumed bit is not `Completed`, and absent state/tag conflicts are not refund permission. Keys/private stdin/SQL/signing/submission are untouched. [Exact observed scope](docs/NATIVE-IMPLEMENTATION-STATUS.md#native-obligation-target-observation--hash-pinned-not-financial-authority).
+
 ### Offline full-body source replay
 
 ```sh
@@ -83,7 +93,9 @@ No default endpoint or live-tip selection. The environment value stays out of di
 
 
 
-## V1 Testnet Showcase
+## Retained samechain showcase — superseded release ordering
+
+The following samechain showcase is retained backlog, not the current first-release journey. Active acceptance is the native route and four-screen workflow in PRODUCT/R1–R10 above.
 
 The acceptance target is a real selected-testnet journey: run owner-local nodes, discover a counterparty over P2P, create and fund a samechain order, review and freshly consent to a partial fill with both parties online, observe actual asset arrival, then cancel/withdraw the remainder. Cold restore and complete company-off recovery must work without company APIs, bootstrap, hosted signers or mandatory company approval. This is **required delivery, not an already working showcase**; mock balances, scripted success, CPU journals and unsigned calldata do not qualify.
 
@@ -257,4 +269,4 @@ Ziquid retains P/Q authoring, local Q proving without a user FVK given to the so
 - [Primary-source research](docs/research/SERVER-INDEPENDENCE-RESEARCH.md) and [cross-chain/market synthesis](docs/research/CROSSCHAIN-MARKET-RESEARCH.md): source claims, inference and technical feasibility limits.
 - [Architecture review](docs/research/ARCHITECTURE-REVIEW.md): exhaustive current/imported-document coverage and unresolved blockers.
 
-Current implementation follows the V1 guide above: P2P CLI samechain trading with fresh per-fill consent and full company-off recovery. Native ZEC (L-ZEC), HyperEVM, Solana, NEAR and cross-chain HTLC are **active parallel obligations, not later work**; offline standing-maker multi-fill and GUI remain V2. Nothing is completed or silently discarded. No signing, broadcast, deployment, funding, mainnet, new viewing party, commit or push permission follows from the documentation. Real primitive tests/local fixtures do not close funded-lifecycle, recovery or privacy gates.
+Current first-release work follows PRODUCT/ARCHITECTURE and active R1–R10: one protected native-ZEC→ETH full-quote journey, owner-local capabilities and independent recovery with the user-owned frontend. Older samechain/parallel-lane/GUI-later wording is retained provenance where superseded; no old rights or artifacts are deleted. The owner explicitly authorized a local source/docs commit after verification on2026-10-09, not push, signing, broadcast, deployment, funding, mainnet or new viewing parties. Primitive tests and local observations do not close product acceptance.

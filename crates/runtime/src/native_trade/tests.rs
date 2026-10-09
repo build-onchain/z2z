@@ -104,3 +104,126 @@ fn operation_decoder_rejects_unknown_without_capsule_and_never_drops_known_hash(
         assert_eq!(journal::decode_operation_state(state, Some([51; 32]), Some([52; 32])), Err(invalid_record()));
     }
 }
+
+#[cfg(target_os = "linux")]
+fn write_private(path: &std::path::Path, bytes: &[u8]) {
+    use std::{io::Write, os::unix::fs::OpenOptionsExt};
+    let mut file = std::fs::OpenOptions::new().create_new(true).write(true).mode(0o600).open(path).unwrap();
+    file.write_all(bytes).unwrap();
+    file.sync_all().unwrap();
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn actual_process_restart_authenticates_quote_and_operation_without_sql() {
+    let directory = fixtures::private_directory();
+    let quote_path = directory.path().join("quote");
+    let operation_path = directory.path().join("operation");
+    let mut key = zeroize::Zeroizing::new([0_u8; 32]);
+    getrandom::fill(&mut *key).unwrap();
+    let quote = fixtures::quote(QuotePhase::Agreed, 8, 1);
+    let quote_location = CapsuleLocation { path: &quote_path, key: &key, namespace: [72; 32] };
+    let quote_digest = capsule::save_quote(quote_location, &quote).unwrap().0;
+    let payload = b"exact retained execution";
+    let binding = fixtures::binding(31, payload);
+    let operation_digest = save_operation_capsule(CapsuleLocation { path: &operation_path, ..quote_location }, quote.selection(), &binding, payload).unwrap();
+    write_private(&directory.path().join("generated-capability"), &*key);
+    let mut digests = [0; 64];
+    digests[..32].copy_from_slice(&quote_digest);
+    digests[32..].copy_from_slice(&operation_digest);
+    write_private(&directory.path().join("independent-digests"), &digests);
+    let quote_ciphertext = std::fs::read(&quote_path).unwrap();
+    let operation_ciphertext = std::fs::read(&operation_path).unwrap();
+    drop(quote);
+    let key_probe = zeroize::Zeroizing::new(*key);
+    drop(key);
+    let child = std::process::Command::new(std::env::current_exe().unwrap())
+        .args(["--exact", "native_trade::tests::native_trade_capsule_restart_child", "--nocapture"])
+        .env("ZIQUID_NATIVE_TRADE_RESTART_DIRECTORY", directory.path()).output().unwrap();
+    assert!(child.status.success(), "generated native trade capsule restart failed");
+    let output = [child.stdout, child.stderr].concat();
+    assert!(!output.windows(payload.len()).any(|bytes| bytes == payload));
+    assert!(!output.windows(key_probe.len()).any(|bytes| bytes == key_probe.as_slice()));
+    assert_eq!(std::fs::read(quote_path).unwrap(), quote_ciphertext);
+    assert_eq!(std::fs::read(operation_path).unwrap(), operation_ciphertext);
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn native_trade_capsule_restart_child() {
+    use zeroize::Zeroizing;
+    let Some(directory) = std::env::var_os("ZIQUID_NATIVE_TRADE_RESTART_DIRECTORY") else { return; };
+    let directory = std::path::Path::new(&directory);
+    let quote_path = directory.join("quote");
+    let operation_path = directory.join("operation");
+    let key_bytes = Zeroizing::new(std::fs::read(directory.join("generated-capability")).unwrap());
+    let key = Zeroizing::new(<[u8; 32]>::try_from(key_bytes.as_slice()).unwrap());
+    let digests = std::fs::read(directory.join("independent-digests")).unwrap();
+    assert_eq!(digests.len(), 64);
+    let quote_digest = <[u8; 32]>::try_from(&digests[..32]).unwrap();
+    let operation_digest = <[u8; 32]>::try_from(&digests[32..]).unwrap();
+    // Independent generated fixture pins are recomputed, never inferred from custody.
+    let expected = fixtures::quote(QuotePhase::Agreed, 8, 1);
+    let location = CapsuleLocation { path: &quote_path, key: &key, namespace: [72; 32] };
+    let quote = capsule::load_quote(location, expected.selection(), QuotePhase::Agreed, quote_digest).unwrap();
+    assert!(quote.encode() == expected.encode());
+    let payload = b"exact retained execution";
+    let binding = fixtures::binding(31, payload);
+    let restored = capsule::load_operation(CapsuleLocation { path: &operation_path, ..location }, expected.selection(), &binding, operation_digest).unwrap();
+    assert!(restored.as_slice() == payload);
+}
+
+#[test]
+fn missing_response_transition_retains_hash_and_same_operation_only_reconciliation() {
+    let hash = [52; 32];
+    let (state, retained, changed) = journal::operation_transition(OperationState::Submitted, Some(hash), None).unwrap();
+    assert_eq!(state, OperationState::Unknown);
+    assert_eq!(retained, Some(hash));
+    assert!(changed);
+    assert_eq!(journal::operation_transition(OperationState::Unknown, Some(hash), None).unwrap(),
+        (OperationState::Unknown, Some(hash), false));
+    assert_eq!(journal::operation_transition(OperationState::Unknown, Some(hash), Some([53; 32])), Err(NativeTradeError::Conflict));
+    assert_eq!(journal::operation_transition(OperationState::Unknown, Some(hash), Some(hash)).unwrap(),
+        (OperationState::Submitted, Some(hash), true));
+    assert_eq!(journal::operation_transition(OperationState::Released, None, None).unwrap(),
+        (OperationState::Unknown, None, true));
+    assert_eq!(journal::operation_transition(OperationState::Prepared, None, None), Err(NativeTradeError::State));
+    assert_eq!(journal::operation_transition(OperationState::Prepared, None, Some(hash)), Err(NativeTradeError::State));
+    assert_eq!(journal::operation_transition(OperationState::Submitted, Some(hash), Some(hash)).unwrap(),
+        (OperationState::Submitted, Some(hash), false));
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn authenticated_operation_frame_rejects_trailing_truncated_and_wrong_payload_bytes() {
+    let directory = fixtures::private_directory();
+    let key = [71; 32];
+    let quote = fixtures::quote(QuotePhase::Agreed, 8, 1);
+    let payload = b"exact retained execution";
+    let binding = fixtures::binding(31, payload);
+    // Independent test frame, not a second production encoder or financial proof.
+    let mut frame = b"ZIQUID_NATIVE_OPERATION_CAPSULE\0".to_vec();
+    frame.extend_from_slice(&1_u16.to_be_bytes());
+    for field in [binding.op_id, binding.context_digest, binding.deployment_digest, binding.stable_j_tag, binding.payload_digest] {
+        frame.extend_from_slice(&field);
+    }
+    frame.extend_from_slice(&binding.action.to_be_bytes());
+    let length_offset = frame.len();
+    frame.extend_from_slice(&(payload.len() as u32).to_be_bytes());
+    frame.extend_from_slice(payload);
+    let mut trailing = frame.clone();
+    trailing.push(0);
+    let mut truncated = frame.clone();
+    truncated.pop();
+    let mut altered = frame.clone();
+    *altered.last_mut().unwrap() ^= 1;
+    let mut oversized = frame;
+    oversized[length_offset..length_offset + 4].copy_from_slice(&(96_u32 * 1024 * 1024).to_be_bytes());
+    for (index, (bytes, error)) in [(trailing, NativeTradeError::Encoding), (truncated, NativeTradeError::Encoding),
+        (altered, NativeTradeError::Binding), (oversized, NativeTradeError::ResourceLimit)].into_iter().enumerate() {
+        let path = directory.path().join(format!("malformed-{index}"));
+        let location = CapsuleLocation { path: &path, key: &key, namespace: [72; 32] };
+        let digest = capsule::save_bytes(location, capsule::quote_selection_digest(quote.selection()), 3, &bytes).unwrap();
+        assert_eq!(capsule::load_operation(location, quote.selection(), &binding, digest).unwrap_err(), error);
+    }
+}

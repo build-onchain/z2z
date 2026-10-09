@@ -18,7 +18,8 @@
 
 use futures::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use libp2p::request_response;
-use zeroize::Zeroizing;
+use sha2::Digest;
+use zeroize::{Zeroize, Zeroizing};
 use std::io;
 
 /// Exact negotiated protocol id (§7.2).
@@ -62,6 +63,9 @@ pub(crate) mod kind {
     pub(crate) const DKG_ROUND1: u8 = 10;
     pub(crate) const DKG_ROUND2: u8 = 11;
     pub(crate) const DKG_FINAL_COMMIT: u8 = 12;
+    /// Native quote coordination frames; no economic or settlement authority.
+    pub(crate) const NATIVE_QUOTE: u8 = 13;
+    pub(crate) const NATIVE_ACCEPTANCE: u8 = 14;
 
     /// Maximum complete envelope bytes per kind (§7.2 table), prefix excluded.
     pub(crate) fn max_envelope(kind: u8) -> usize {
@@ -79,6 +83,8 @@ pub(crate) mod kind {
             DKG_ROUND1 => 512,
             DKG_ROUND2 => 512,
             DKG_FINAL_COMMIT => 354,
+            NATIVE_QUOTE => super::HEADER_LEN + super::SIGNATURE_LEN + crate::native_quote::QUOTE_BYTES,
+            NATIVE_ACCEPTANCE => super::HEADER_LEN + super::SIGNATURE_LEN + crate::native_quote::ACCEPT_BYTES,
             _ => 0,
         }
     }
@@ -86,7 +92,7 @@ pub(crate) mod kind {
 
 /// Decoded session envelope. `body` is validated kind-by-kind by callers via
 /// [`validate_body`]; the codec guarantees only framing and header invariants.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub(crate) struct Envelope {
     pub lane_id: u16,
     pub chain_context_digest: [u8; 32],
@@ -103,6 +109,17 @@ pub(crate) struct Envelope {
     pub sent_at_unix: u64,
     pub body: Vec<u8>,
     pub signature: [u8; 64],
+}
+
+impl Drop for Envelope {
+    fn drop(&mut self) { self.body.zeroize(); }
+}
+
+impl std::fmt::Debug for Envelope {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Envelope").field("kind", &self.kind).field("seq", &self.seq)
+            .field("body_bytes", &self.body.len()).finish_non_exhaustive()
+    }
 }
 
 /// Advisory coordination timestamp gate: reject beyond ±300s (§7).
@@ -142,7 +159,8 @@ impl Envelope {
 
     /// Bytes covered by the signature: DOMAIN through body (§7.2).
     pub(crate) fn signed_bytes(&self) -> Vec<u8> {
-        let mut out = Vec::with_capacity(HEADER_LEN + self.body.len());
+        // Reserve the signature as well: to_wire reuses this private allocation.
+        let mut out = Vec::with_capacity(HEADER_LEN + self.body.len() + SIGNATURE_LEN);
         out.extend_from_slice(DOMAIN);
         out.extend_from_slice(&self.schema_bytes());
         out.extend_from_slice(&self.header_bytes());
@@ -170,6 +188,17 @@ impl Envelope {
         out.extend_from_slice(&self.sent_at_unix.to_be_bytes());
         out.extend_from_slice(&(self.body.len() as u32).to_be_bytes());
         out
+    }
+
+    pub(crate) fn payload(&self) -> Result<Zeroizing<Vec<u8>>, io::Error> {
+        let cap = kind::max_envelope(self.kind);
+        let total = HEADER_LEN + self.body.len() + SIGNATURE_LEN;
+        if cap == 0 || total > cap || total > MAX_ENVELOPE_BYTES {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "envelope exceeds kind cap"));
+        }
+        let mut bytes = Zeroizing::new(self.signed_bytes());
+        bytes.extend_from_slice(&self.signature);
+        Ok(bytes)
     }
 
     /// Serialize into the canonical wire form (signature included).
@@ -472,6 +501,19 @@ impl SessionTable {
         Ok(())
     }
 
+    fn store_response(&mut self, peer: &libp2p::PeerId, session_id: &[u8; 32],
+        request_digest: [u8; 32], response: Zeroizing<Vec<u8>>,
+    ) -> Result<(), WireError> {
+        let session = self.sessions.iter_mut().find(|session| session.peer == *peer && &session.session_id == session_id)
+            .ok_or(WireError::UnknownSession)?;
+        // Five existing DKG responses plus the three quote-frame ACKs.
+        if session.answered.len() >= 8 || response.len() > kind::max_envelope(kind::DKG_ROUND1) {
+            return Err(WireError::SessionFull);
+        }
+        session.answered.push((request_digest, response));
+        Ok(())
+    }
+
     /// Store the built response envelope for an answered DKG request so an
     /// exact retry re-sends byte-identical bytes.
     pub(crate) fn dkg_store_response(
@@ -481,17 +523,7 @@ impl SessionTable {
         request_digest: [u8; 32],
         response: Vec<u8>,
     ) -> Result<(), WireError> {
-        let response = Zeroizing::new(response);
-        let session = self
-            .sessions
-            .iter_mut()
-            .find(|session| session.peer == *peer && &session.session_id == session_id)
-            .ok_or(WireError::UnknownSession)?;
-        if session.answered.len() >= 5 || response.len() > kind::max_envelope(kind::DKG_ROUND1) {
-            return Err(WireError::Dkg);
-        }
-        session.answered.push((request_digest, response));
-        Ok(())
+        self.store_response(peer, session_id, request_digest, Zeroizing::new(response))
     }
 
     /// Look up the stored response for an exact retry of a DKG request.
@@ -621,6 +653,14 @@ struct Session {
     next_from_peer: u32,
     /// Strictly next outbound seq for this side (the bootstrap ACK consumed 0).
     next_local_seq: u32,
+    /// Retained transcript may be local-initiator or local-responder; the same
+    /// strict admission gate always authenticates the independently pinned peer.
+    local_is_initiator: bool,
+    native_selection: Option<crate::native_quote::QuoteSelection>,
+    native_quote: Option<crate::native_quote::AuthenticatedQuote>,
+    native_ack_pending: Option<[u8; 32]>,
+    /// At most three accepted quote-frame terminal ACKs, not bootstrap/control ACKs.
+    native_ack_received: [Option<[u8; 32]>; 3],
     /// Fresh-J DKG ceremony state (kinds 10-12), if the responder opted in.
     dkg: Option<DkgState>,
     dkg_started: bool,
@@ -642,14 +682,259 @@ struct Session {
 /// Bounded session registry: at most [`MAX_SESSIONS`] live transcripts, one
 /// per PeerId, each with its own dedup/seq state. Lookup is a ≤4 scan.
 #[derive(Default)]
-pub(crate) struct SessionTable {
+pub struct SessionTable {
     local_coord_key: [u8; 32],
     sessions: Vec<Session>,
 }
 
 impl SessionTable {
-    pub(crate) fn new(local_coord_key: [u8; 32]) -> Self {
+    pub fn new(local_coord_key: [u8; 32]) -> Self {
         Self { local_coord_key, sessions: Vec::new() }
+    }
+
+    /// Retain a genuine Hello -> responder ACK -> initiator confirmation on
+    /// either local side. All three signatures/pins use the existing parser and
+    /// admission gate; callers cannot register an unknown peer or raw quote as
+    /// an authenticated session. This is live admission, not durable restore.
+    pub fn retain_confirmed_transcript(&mut self, peer: &libp2p::PeerId,
+        hello: &[u8], ack: &[u8], confirmation: &[u8], now: u64,
+    ) -> Result<(), crate::native_quote::QuoteError> {
+        use crate::native_quote::QuoteError;
+        use ed25519_dalek::{Signature, VerifyingKey};
+        let hello = parse(hello).map_err(|_| QuoteError::Encoding)?;
+        let ack = parse(ack).map_err(|_| QuoteError::Encoding)?;
+        let confirmation = parse(confirmation).map_err(|_| QuoteError::Encoding)?;
+        let local_is_initiator = hello.initiator_coord_key == self.local_coord_key;
+        let remote_key = if local_is_initiator { ack.responder_coord_key } else { hello.initiator_coord_key };
+        let remote_public = libp2p::identity::ed25519::PublicKey::try_from_bytes(&remote_key)
+            .map_err(|_| QuoteError::Authentication)?;
+        if libp2p::identity::PublicKey::from(remote_public).to_peer_id() != *peer
+            || (!local_is_initiator && ack.responder_coord_key != self.local_coord_key)
+            || hello.initiator_coord_key == ack.responder_coord_key
+            || self.sessions.len() >= MAX_SESSIONS
+            || self.sessions.iter().any(|session| session.peer == *peer || session.session_id == hello.session_id)
+        {
+            return Err(QuoteError::Selection);
+        }
+        if ack.kind != kind::ACK || ack.seq != 0 || ack.lane_id != hello.lane_id
+            || ack.chain_context_digest != hello.chain_context_digest || ack.deployment_digest != hello.deployment_digest
+            || ack.session_id != hello.session_id || ack.initiator_coord_key != hello.initiator_coord_key
+            || ack.role_map != hello.role_map || ack.challenge_i != hello.challenge_i || ack.challenge_r == [0; 32]
+            || validate_body(&ack).map_err(|_| QuoteError::Encoding)? != Body::Ack(hello.ack_digest())
+        {
+            return Err(QuoteError::Selection);
+        }
+        check_skew(now, ack.sent_at_unix).map_err(|_| QuoteError::Selection)?;
+        let key = VerifyingKey::from_bytes(&ack.responder_coord_key).map_err(|_| QuoteError::Authentication)?;
+        key.verify_strict(&Zeroizing::new(ack.signed_bytes()), &Signature::from_bytes(&ack.signature))
+            .map_err(|_| QuoteError::Authentication)?;
+        // Reconstruct through the real responder admission path, then retain
+        // the local orientation and its exact current per-sender positions.
+        let mut admitted = Self::new(ack.responder_coord_key);
+        admitted.admit_request(peer, &hello, ack.challenge_r, now).map_err(|_| QuoteError::Selection)?;
+        admitted.record_hello_response(peer, &hello.session_id, &ack);
+        admitted.admit_request(peer, &confirmation, [0; 32], now).map_err(|_| QuoteError::Selection)?;
+        let mut session = admitted.sessions.pop().ok_or(QuoteError::Selection)?;
+        if !session.confirmed { return Err(QuoteError::Selection); }
+        session.local_is_initiator = local_is_initiator;
+        if local_is_initiator { std::mem::swap(&mut session.next_from_peer, &mut session.next_local_seq); }
+        self.sessions.push(session);
+        Ok(())
+    }
+
+    /// Explicit owner selection against the retained transcript, not incoming
+    /// quote bytes. One quote per bounded session; no automatic acceptance.
+    pub fn select_native_quote(&mut self, peer: &libp2p::PeerId,
+        selection: crate::native_quote::QuoteSelection,
+    ) -> Result<(), crate::native_quote::QuoteError> {
+        use crate::native_quote::{NativeRole, QuoteError, validate_selection};
+        validate_selection(&selection)?;
+        let remote_key = match selection.local_role { NativeRole::User => selection.responder_coord_key,
+            NativeRole::Solver => selection.initiator_coord_key };
+        let remote = libp2p::identity::ed25519::PublicKey::try_from_bytes(&remote_key)
+            .map_err(|_| QuoteError::Authentication)?;
+        if libp2p::identity::PublicKey::from(remote).to_peer_id() != *peer { return Err(QuoteError::Selection); }
+        let session = self.sessions.iter_mut().find(|session| session.peer == *peer
+            && session.session_id == selection.session_id).ok_or(QuoteError::Selection)?;
+        if let Some(existing) = session.native_selection {
+            return if existing == selection { Ok(()) } else { Err(QuoteError::Selection) };
+        }
+        let (user_next, solver_next) = if session.local_is_initiator {
+            (session.next_local_seq, session.next_from_peer)
+        } else { (session.next_from_peer, session.next_local_seq) };
+        if !session.confirmed || session.dkg.is_some() || session.lane_id != 5 || session.role_map != 0
+            || selection.local_role != (if session.local_is_initiator { NativeRole::User } else { NativeRole::Solver })
+            || selection.initiator_coord_key != session.initiator_coord_key
+            || selection.responder_coord_key != session.responder_coord_key
+            || selection.chain_context != session.chain_context_digest || selection.deployment_context != session.deployment_digest
+            || selection.challenge_i != session.challenge_i || selection.challenge_r != session.challenge_r
+            || selection.proposal_seq != solver_next
+            || Some(selection.user_acceptance_seq) != user_next.checked_add(1)
+            || Some(selection.solver_acceptance_seq) != solver_next.checked_add(2)
+        {
+            return Err(QuoteError::Selection);
+        }
+        session.native_selection = Some(selection);
+        Ok(())
+    }
+
+    pub fn native_quote(&self, peer: &libp2p::PeerId, session_id: &[u8; 32])
+        -> Option<&crate::native_quote::AuthenticatedQuote> {
+        self.sessions.iter().find(|session| session.peer == *peer && &session.session_id == session_id)
+            .and_then(|session| session.native_quote.as_ref())
+    }
+
+    /// Explicit local signer action over already-selected coordination terms.
+    /// Never called by inbound dispatch; no transaction or economic authority.
+    pub fn native_proposal(&mut self, peer: &libp2p::PeerId, session_id: &[u8; 32],
+        terms: &crate::native_quote::QuoteV1, key: &ed25519_dalek::SigningKey, now: u64,
+    ) -> Result<Zeroizing<Vec<u8>>, crate::native_quote::QuoteError> {
+        use crate::native_quote::{AuthenticatedQuote, NativeRole, QuoteError};
+        let session = self.sessions.iter().find(|session| session.peer == *peer && &session.session_id == session_id)
+            .ok_or(QuoteError::Selection)?;
+        let selection = session.native_selection.ok_or(QuoteError::Selection)?;
+        if selection.local_role != NativeRole::Solver || session.native_quote.is_some() || session.native_ack_pending.is_some() {
+            return Err(QuoteError::Selection);
+        }
+        // Validate selection/terms before reserving any outbound sequence.
+        if terms.as_bytes()[19..51] != selection.quote_id || terms.as_bytes()[51..83] != selection.s_offer_id
+            || crate::native_quote::validate_quote(terms.as_bytes()).is_err()
+            || <[u8; 32]>::from(sha2::Sha256::digest(&terms.as_bytes()[91..303])) != selection.chain_context
+            || <[u8; 32]>::from(sha2::Sha256::digest(&terms.as_bytes()[303..587])) != selection.deployment_context {
+            return Err(QuoteError::Selection);
+        }
+        let envelope = self.native_envelope(peer, session_id, kind::NATIVE_QUOTE,
+            terms.as_bytes(), selection.proposal_seq, key, now)?;
+        let payload = envelope.payload().map_err(|_| QuoteError::Encoding)?;
+        let quote = AuthenticatedQuote::from_proposal(&payload, &selection)?;
+        let session = self.sessions.iter_mut().find(|session| session.peer == *peer && &session.session_id == session_id)
+            .ok_or(QuoteError::Selection)?;
+        session.next_local_seq = envelope.seq.checked_add(1).ok_or(QuoteError::Selection)?;
+        session.native_quote = Some(quote);
+        session.native_ack_pending = Some(envelope.ack_digest());
+        Ok(payload)
+    }
+
+    /// Explicit local acceptance only after the prior quote frame and its ACK.
+    pub fn native_acceptance(&mut self, peer: &libp2p::PeerId, session_id: &[u8; 32],
+        key: &ed25519_dalek::SigningKey, now: u64,
+    ) -> Result<Zeroizing<Vec<u8>>, crate::native_quote::QuoteError> {
+        use crate::native_quote::{NativeRole, QuoteError};
+        let session = self.sessions.iter().find(|session| session.peer == *peer && &session.session_id == session_id)
+            .ok_or(QuoteError::Selection)?;
+        if session.native_ack_pending.is_some() { return Err(QuoteError::Selection); }
+        let selection = session.native_selection.ok_or(QuoteError::Selection)?;
+        let body = session.native_quote.as_ref().ok_or(QuoteError::Selection)?.acceptance_body(selection.local_role)?;
+        let sequence = match selection.local_role { NativeRole::User => selection.user_acceptance_seq,
+            NativeRole::Solver => selection.solver_acceptance_seq };
+        let envelope = self.native_envelope(peer, session_id, kind::NATIVE_ACCEPTANCE, &body, sequence, key, now)?;
+        let payload = envelope.payload().map_err(|_| QuoteError::Encoding)?;
+        let session = self.sessions.iter_mut().find(|session| session.peer == *peer && &session.session_id == session_id)
+            .ok_or(QuoteError::Selection)?;
+        let quote = session.native_quote.take().ok_or(QuoteError::Selection)?.with_acceptance(&payload)?;
+        session.next_local_seq = envelope.seq.checked_add(1).ok_or(QuoteError::Selection)?;
+        session.native_quote = Some(quote);
+        session.native_ack_pending = Some(envelope.ack_digest());
+        Ok(payload)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn native_envelope(&mut self, peer: &libp2p::PeerId, session_id: &[u8; 32], kind: u8,
+        body: &[u8], sequence: u32, key: &ed25519_dalek::SigningKey, now: u64,
+    ) -> Result<Envelope, crate::native_quote::QuoteError> {
+        use crate::native_quote::QuoteError;
+        use ed25519_dalek::Signer;
+        if key.verifying_key().to_bytes() != self.local_coord_key || now == 0 { return Err(QuoteError::Selection); }
+        let session = self.sessions.iter().find(|session| session.peer == *peer && &session.session_id == session_id)
+            .ok_or(QuoteError::Selection)?;
+        if session.next_local_seq != sequence || sequence.checked_add(1).is_none() { return Err(QuoteError::Selection); }
+        let seq = sequence;
+        let pins = OutboundPins { lane_id: session.lane_id, chain_context_digest: session.chain_context_digest,
+            deployment_digest: session.deployment_digest, session_id: session.session_id,
+            initiator_coord_key: session.initiator_coord_key, responder_coord_key: session.responder_coord_key,
+            role_map: session.role_map, challenge_i: session.challenge_i, challenge_r: session.challenge_r };
+        let mut envelope = Envelope { lane_id: pins.lane_id, chain_context_digest: pins.chain_context_digest,
+            deployment_digest: pins.deployment_digest, session_id: pins.session_id,
+            initiator_coord_key: pins.initiator_coord_key, responder_coord_key: pins.responder_coord_key,
+            role_map: pins.role_map, challenge_i: pins.challenge_i, challenge_r: pins.challenge_r,
+            seq, kind, sent_at_unix: now, body: body.to_vec(), signature: [0; 64] };
+        envelope.signature = key.sign(&Zeroizing::new(envelope.signed_bytes())).to_bytes();
+        Ok(envelope)
+    }
+
+    /// The actual receiving entry used by network dispatch. Exact retries reuse
+    /// the stored signed ACK; fresh messages use the existing strict admission.
+    /// ACK authenticates/admitted bytes only; it never signs quote acceptance.
+    pub fn dispatch_native(&mut self, peer: &libp2p::PeerId, payload: &[u8],
+        key: &ed25519_dalek::SigningKey, now: u64,
+    ) -> Result<Option<Zeroizing<Vec<u8>>>, crate::native_quote::QuoteError> {
+        use crate::native_quote::QuoteError;
+        let envelope = parse(payload).map_err(|_| QuoteError::Encoding)?;
+        self.respond_native(peer, &envelope, key, now)
+    }
+
+    pub(super) fn is_native_session(&self, peer: &libp2p::PeerId, session_id: &[u8; 32]) -> bool {
+        self.sessions.iter().any(|session| session.peer == *peer && &session.session_id == session_id
+            && session.native_selection.is_some())
+    }
+
+    pub(super) fn respond_native(&mut self, peer: &libp2p::PeerId, envelope: &Envelope,
+        key: &ed25519_dalek::SigningKey, now: u64,
+    ) -> Result<Option<Zeroizing<Vec<u8>>>, crate::native_quote::QuoteError> {
+        use crate::native_quote::{AuthenticatedQuote, NativeRole, QuoteError, QuotePhase};
+        let result = (|| {
+            self.sweep(std::time::Instant::now());
+            if key.verifying_key().to_bytes() != self.local_coord_key { return Err(QuoteError::Selection); }
+            let session = self.sessions.iter().find(|session| session.peer == *peer && session.session_id == envelope.session_id)
+                .ok_or(QuoteError::Selection)?;
+            let selection = session.native_selection.ok_or(QuoteError::Selection)?;
+            let digest = envelope.sha256();
+            if let Some((_, cached)) = session.answered.iter().find(|(request, _)| *request == digest) {
+                return Ok(Some(Zeroizing::new(cached.to_vec())));
+            }
+            if envelope.kind == kind::ACK && session.dedup.seen(digest)
+                && session.native_ack_received.contains(&Some(digest)) { return Ok(None); }
+            let admitted = self.admit_request(peer, envelope, [0; 32], now).map_err(|_| QuoteError::Selection)?;
+            let session = self.sessions.iter_mut().find(|session| session.peer == *peer && session.session_id == envelope.session_id)
+                .ok_or(QuoteError::Selection)?;
+            if let Admitted::Established(Body::Ack(ack)) = admitted {
+                if session.native_ack_pending != Some(ack) { return Err(QuoteError::Selection); }
+                let receipt = session.native_ack_received.iter_mut().find(|receipt| receipt.is_none())
+                    .ok_or(QuoteError::Selection)?;
+                *receipt = Some(digest);
+                session.native_ack_pending = None;
+                return Ok(None); // Terminal ACK must not be acknowledged again.
+            }
+            if session.native_ack_pending.is_some() { return Err(QuoteError::Selection); }
+            let payload = envelope.payload().map_err(|_| QuoteError::Encoding)?;
+            let quote = match envelope.kind {
+                kind::NATIVE_QUOTE if selection.local_role == NativeRole::User && session.native_quote.is_none() =>
+                    AuthenticatedQuote::from_proposal(&payload, &selection)?,
+                kind::NATIVE_ACCEPTANCE => {
+                    let previous = session.native_quote.take().ok_or(QuoteError::Selection)?;
+                    if (selection.local_role == NativeRole::Solver && previous.phase() != QuotePhase::Proposal)
+                        || (selection.local_role == NativeRole::User && previous.phase() != QuotePhase::UserAcceptance) {
+                        return Err(QuoteError::Selection);
+                    }
+                    previous.with_acceptance(&payload)?
+                }
+                _ => return Err(QuoteError::Selection),
+            };
+            session.native_quote = Some(quote);
+            let sequence = session.next_local_seq;
+            let ack = self.native_envelope(peer, &envelope.session_id, kind::ACK,
+                &envelope.ack_digest(), sequence, key, now)?;
+            let response = ack.payload().map_err(|_| QuoteError::Encoding)?;
+            let session = self.sessions.iter_mut().find(|session| session.peer == *peer && session.session_id == envelope.session_id)
+                .ok_or(QuoteError::Selection)?;
+            session.next_local_seq = ack.seq.checked_add(1).ok_or(QuoteError::Selection)?;
+            // Same bounded guarded retry store used by DKG, not a second policy.
+            self.store_response(peer, &envelope.session_id, digest, response.clone())
+                .map_err(|_| QuoteError::Selection)?;
+            Ok(Some(response))
+        })();
+        if result.is_err() { self.close_session(peer, &envelope.session_id); }
+        result
     }
 
     /// Admit one inbound request: a Hello bootstraps a new responder-side
@@ -773,6 +1058,11 @@ impl SessionTable {
             // responder's seq 0, so both senders start at 1.
             next_from_peer: 1,
             next_local_seq: 1,
+            local_is_initiator: false,
+            native_selection: None,
+            native_quote: None,
+            native_ack_pending: None,
+            native_ack_received: [None; 3],
             dkg: None,
             dkg_started: false,
             answered: Vec::new(),
@@ -810,12 +1100,11 @@ impl SessionTable {
         if session.peer != *peer {
             return Err(WireError::PeerMismatch);
         }
-        // Authenticate before any state effect, so unauthenticated frames can
-        // never close or mutate a session (the sender key is the peer's
-        // initiator key: the node only runs responder-side sessions today).
+        // Authenticate before effects for either retained side of the transcript.
         use ed25519_dalek::{Signature, VerifyingKey};
-        let key = VerifyingKey::from_bytes(&session.initiator_coord_key)
-            .map_err(|_| WireError::BadSignature)?;
+        let peer_key = if session.local_is_initiator { &session.responder_coord_key }
+            else { &session.initiator_coord_key };
+        let key = VerifyingKey::from_bytes(peer_key).map_err(|_| WireError::BadSignature)?;
         let signed = Zeroizing::new(envelope.signed_bytes());
         key.verify_strict(&signed, &Signature::from_bytes(&envelope.signature))
             .map_err(|_| WireError::BadSignature)?;
@@ -918,6 +1207,15 @@ pub(crate) fn validate_body(envelope: &Envelope) -> Result<Body, WireError> {
                 envelope.body.as_slice().try_into().expect("fixed"),
             ))
         }
+        kind::NATIVE_QUOTE => {
+            let bytes = envelope.body.as_slice().try_into().map_err(|_| WireError::BodyLengthMismatch)?;
+            crate::native_quote::validate_quote(bytes).map_err(|_| WireError::BodyLengthMismatch)?;
+            Ok(Body::Opaque)
+        }
+        kind::NATIVE_ACCEPTANCE => {
+            crate::native_quote::validate_accept(&envelope.body).map_err(|_| WireError::BodyLengthMismatch)?;
+            Ok(Body::Opaque)
+        }
         // BackingClaim / Terms / Descriptors / Leaf / Certificate bodies bind
         // canonical downstream frames; their byte validation lives with those
         // frame codecs, not here. Size caps are enforced in parse().
@@ -1016,6 +1314,14 @@ where
     }
     let mut envelope = Zeroizing::new(vec![0_u8; length]);
     io.read_exact(envelope.as_mut_slice()).await?;
+    // The pinned request-response handler half-closes its write side before
+    // invoking the opposite read (handler.rs:188-193), and closes responses at
+    // 149-154. Require that EOF here; one suffix byte or a second frame rejects.
+    // The existing 30s stream timeout bounds a peer withholding its half-close.
+    let mut suffix = Zeroizing::new([0_u8; 1]);
+    if io.read(suffix.as_mut_slice()).await? != 0 {
+        return Err(io::Error::new(io::ErrorKind::InvalidData, "session trailing bytes"));
+    }
     let payload = std::mem::take(&mut *envelope);
     Ok(payload)
 }
@@ -1632,5 +1938,66 @@ mod tests {
         table.sweep(deadline + std::time::Duration::from_nanos(1));
         assert!(table.dkg_retry_response(&peer, &hello.session_id, &[7; 32]).is_none());
         assert_eq!(table.begin_outbound(&peer, &hello.session_id).err(), Some(WireError::UnknownSession));
+    }
+
+    #[tokio::test]
+    async fn native_quote_frames_cross_the_existing_codec_with_exact_body_caps() {
+        use libp2p::request_response::Codec;
+        let mut bytes = [0_u8; crate::native_quote::QUOTE_BYTES];
+        for (offset, domain) in [(0, b"Z2Z_NATIVE_QUOTE\0".as_slice()), (91, b"Z2Z_NATIVE_ROUTE\0".as_slice()),
+            (303, b"Z2Z_NATIVE_DEPLOY\0".as_slice()), (587, b"Z2Z_NATIVE_WINDOW\0".as_slice())] {
+            bytes[offset..offset + domain.len()].copy_from_slice(domain);
+            bytes[offset + domain.len()..offset + domain.len() + 2].copy_from_slice(&1_u16.to_be_bytes());
+        }
+        bytes[19..83].fill(1); bytes[90] = 1;
+        let mut proposal = sample(); proposal.kind = kind::NATIVE_QUOTE; proposal.body = bytes.to_vec();
+        let wire = Zeroizing::new(proposal.to_wire().unwrap());
+        assert_eq!(wire.len(), 3570);
+        let mut codec = SessionCodec;
+        let mut input = futures::io::Cursor::new(wire.as_slice());
+        let received = Zeroizing::new(codec.read_request(&PROTOCOL_ID, &mut input).await.unwrap());
+        let parsed = parse(&received).unwrap();
+        assert_eq!(validate_body(&parsed), Ok(Body::Opaque));
+        proposal.body.pop();
+        assert_eq!(validate_body(&parse(&proposal.payload().unwrap()).unwrap()), Err(WireError::BodyLengthMismatch));
+        proposal.body.extend_from_slice(&[0, 0]);
+        assert!(proposal.to_wire().is_err());
+        for offset in [108_usize, 321, 605] {
+            let mut changed = bytes; changed[offset] = 1;
+            proposal.body = changed.to_vec();
+            assert_eq!(validate_body(&parse(&proposal.payload().unwrap()).unwrap()), Err(WireError::BodyLengthMismatch));
+        }
+        let mut accept = sample(); accept.kind = kind::NATIVE_ACCEPTANCE;
+        accept.body.extend_from_slice(b"Z2Z_NATIVE_ACCEPT\0");
+        accept.body.extend_from_slice(&1_u16.to_be_bytes()); accept.body.push(0);
+        accept.body.extend_from_slice(&[1; 160]);
+        let wire = Zeroizing::new(accept.to_wire().unwrap());
+        assert_eq!(wire.len(), 507);
+        let mut input = futures::io::Cursor::new(wire.as_slice());
+        let received = Zeroizing::new(codec.read_request(&PROTOCOL_ID, &mut input).await.unwrap());
+        assert_eq!(validate_body(&parse(&received).unwrap()), Ok(Body::Opaque));
+        accept.body[20] = 2;
+        assert_eq!(validate_body(&accept), Err(WireError::BodyLengthMismatch));
+        accept.body.push(0);
+        assert!(accept.to_wire().is_err());
+    }
+
+    #[tokio::test]
+    async fn codec_rejects_stream_suffix_and_second_frame_for_requests_and_responses() {
+        use libp2p::request_response::Codec;
+        let wire = sample().to_wire().unwrap();
+        let mut codec = SessionCodec;
+        for suffix in [vec![42], wire.clone()] {
+            let mut extended = Zeroizing::new(Vec::with_capacity(wire.len() + suffix.len()));
+            extended.extend_from_slice(&wire); extended.extend_from_slice(&suffix);
+            let mut input = futures::io::Cursor::new(extended.as_slice());
+            assert_eq!(codec.read_request(&PROTOCOL_ID, &mut input).await.unwrap_err().kind(), io::ErrorKind::InvalidData);
+            let mut input = futures::io::Cursor::new(extended.as_slice());
+            assert_eq!(codec.read_response(&PROTOCOL_ID, &mut input).await.unwrap_err().kind(), io::ErrorKind::InvalidData);
+        }
+        let mut input = futures::io::Cursor::new(wire.as_slice());
+        assert!(codec.read_request(&PROTOCOL_ID, &mut input).await.is_ok());
+        let mut input = futures::io::Cursor::new(wire.as_slice());
+        assert!(codec.read_response(&PROTOCOL_ID, &mut input).await.is_ok());
     }
 }

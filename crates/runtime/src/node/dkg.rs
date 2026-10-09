@@ -667,4 +667,61 @@ mod tests {
         sign(&mut stale, &fixture.initiator);
         assert!(fixture.answer(&stale).is_err(), "unknown stale bytes must not gain cache admission");
     }
+
+    #[test]
+    fn native_quote_after_actual_dkg_uses_admitted_sequences_and_dispatch() {
+        use crate::native_quote::{NativeRole, QuotePhase, QuoteSelection, QuoteV1, QUOTE_BYTES};
+        let mut terms = Zeroizing::new([0_u8; QUOTE_BYTES]);
+        for (offset, domain) in [(0, b"Z2Z_NATIVE_QUOTE\0".as_slice()), (91, b"Z2Z_NATIVE_ROUTE\0".as_slice()),
+            (303, b"Z2Z_NATIVE_DEPLOY\0".as_slice()), (587, b"Z2Z_NATIVE_WINDOW\0".as_slice())] {
+            terms[offset..offset + domain.len()].copy_from_slice(domain);
+            terms[offset + domain.len()..offset + domain.len() + 2].copy_from_slice(&1_u16.to_be_bytes());
+        }
+        terms[19..51].fill(8); terms[51..83].fill(9); terms[90] = 1;
+        let terms = QuoteV1::decode(terms.as_slice()).unwrap();
+        let mut fixture = Fixture::new();
+        fixture.policy.parameters.chain_context = Sha256::digest(&terms.as_bytes()[91..303]).into();
+        fixture.policy.parameters.deployment_context = Sha256::digest(&terms.as_bytes()[303..587]).into();
+        let mut hello = fixture.hello(); hello.lane_id = 5; sign(&mut hello, &fixture.initiator);
+        let (pins, _) = fixture.exact(&hello, session::kind::ACK);
+        let confirm = envelope_from(&pins, 1, session::kind::ACK,
+            Zeroizing::new(pins.ack_digest().to_vec()), &fixture.initiator);
+        let (round1, _) = fixture.exact(&confirm, session::kind::DKG_ROUND1);
+        let digest = context(&fixture.policy.parameters, &pins);
+        let (mut dkg, own_round1) = ziquid_threshold::DkgSession::start(ziquid_threshold::Participant::Second, &mut OsRng).unwrap();
+        let own_round1 = Zeroizing::new(own_round1);
+        let own_round2 = dkg.round2(package(&round1, &digest).unwrap()).unwrap();
+        let r1 = envelope_from(&pins, 2, session::kind::DKG_ROUND1, package_body(&digest, &own_round1), &fixture.initiator);
+        let (round2, _) = fixture.exact(&r1, session::kind::DKG_ROUND2);
+        let (share, group) = dkg.finalize(package(&round1, &digest).unwrap(), package(&round2, &digest).unwrap()).unwrap();
+        drop(share);
+        let commit: [u8; 32] = Sha256::digest(group.to_bytes()).into(); drop(group);
+        let r2 = envelope_from(&pins, 3, session::kind::DKG_ROUND2, package_body(&digest, &own_round2), &fixture.initiator);
+        fixture.exact(&r2, session::kind::DKG_FINAL_COMMIT);
+        let final_commit = envelope_from(&pins, 4, session::kind::DKG_FINAL_COMMIT, Zeroizing::new(commit.to_vec()), &fixture.initiator);
+        fixture.exact(&final_commit, session::kind::ACK);
+        let selection = QuoteSelection { local_role: NativeRole::Solver, owner_scope: [1; 32], session_id: pins.session_id,
+            initiator_coord_key: pins.initiator_coord_key, responder_coord_key: pins.responder_coord_key,
+            chain_context: pins.chain_context_digest, deployment_context: pins.deployment_digest,
+            quote_id: [8; 32], s_offer_id: [9; 32], u_trade_intent_id: [10; 32], challenge_i: pins.challenge_i,
+            challenge_r: pins.challenge_r, proposal_seq: 5, user_acceptance_seq: 6, solver_acceptance_seq: 7 };
+        fixture.sessions.select_native_quote(&fixture.policy.peer, selection).unwrap();
+        let now = super::super::state::now_unix_secs();
+        let proposal = fixture.sessions.native_proposal(&fixture.policy.peer, &pins.session_id, &terms, &fixture.local, now).unwrap();
+        let proposal = GuardedEnvelope(session::parse(&proposal).unwrap());
+        assert_eq!(proposal.seq, 5);
+        let ack = envelope_from(&pins, 5, session::kind::ACK, Zeroizing::new(proposal.ack_digest().to_vec()), &fixture.initiator);
+        assert!(fixture.sessions.dispatch_native(&fixture.policy.peer, &payload(&ack).unwrap(), &fixture.local, now).unwrap().is_none());
+        let body = fixture.sessions.native_quote(&fixture.policy.peer, &pins.session_id).unwrap().acceptance_body(NativeRole::User).unwrap();
+        let user = envelope_from(&pins, 6, session::kind::NATIVE_ACCEPTANCE, body, &fixture.initiator);
+        let bytes = payload(&user).unwrap();
+        let ack = fixture.sessions.dispatch_native(&fixture.policy.peer, &bytes, &fixture.local, now).unwrap().unwrap();
+        let retry = fixture.sessions.dispatch_native(&fixture.policy.peer, &bytes, &fixture.local, now + 1000).unwrap().unwrap();
+        assert_eq!(ack.as_slice(), retry.as_slice());
+        assert_eq!(session::parse(&ack).unwrap().seq, 6);
+        assert_eq!(fixture.sessions.native_quote(&fixture.policy.peer, &pins.session_id).unwrap().phase(), QuotePhase::UserAcceptance);
+        let agreed = fixture.sessions.native_acceptance(&fixture.policy.peer, &pins.session_id, &fixture.local, now).unwrap();
+        assert_eq!(session::parse(&agreed).unwrap().seq, 7);
+        assert_eq!(fixture.sessions.native_quote(&fixture.policy.peer, &pins.session_id).unwrap().phase(), QuotePhase::Agreed);
+    }
 }

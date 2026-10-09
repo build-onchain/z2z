@@ -301,13 +301,17 @@ async fn inspect(connection: &mut PgConnection, config: &DatabaseConfig, spec: O
         if application != spec.application || version != spec.version || row.try_get::<Vec<u8>,_>("manifest")? != manifest(spec)? {
             return Err(DatabaseError::SchemaIdentity);
         }
-    } else if !matches!(application.as_str(), "market" | "inventory" | "samechain" | "native") { return Err(DatabaseError::SchemaIdentity); }
+    } else if !supported_application(&application) { return Err(DatabaseError::SchemaIdentity); }
     if row.try_get::<Vec<u8>,_>("catalog_digest")? != digest_rows(catalog(connection, &config.schema).await?) {
         return Err(DatabaseError::SchemaIdentity);
     }
     let (applied, digest) = history(connection, &config.schema).await?;
     if applied != version || row.try_get::<Vec<u8>,_>("migration_digest")? != digest { return Err(DatabaseError::SchemaIdentity); }
     Ok(true)
+}
+
+fn supported_application(application: &str) -> bool {
+    matches!(application, "market" | "inventory" | "samechain" | "native" | "native_trade")
 }
 
 fn manifest(spec: SchemaSpec) -> Result<Vec<u8>, DatabaseError> {
@@ -436,6 +440,16 @@ mod database_configuration {
 
     fn config() -> DatabaseConfig {
         DatabaseConfig { uri_env: "Z2Z_TEST_DATABASE_URL".into(), schema: "z2z_market_test".into(), max_connections: 4 }
+    }
+
+    #[test]
+    fn session_application_registry_admits_native_trade_without_aliases_or_case_folding() {
+        for application in ["market", "inventory", "samechain", "native", "native_trade"] {
+            assert!(supported_application(application), "registered schema application rejected");
+        }
+        for application in ["", "arbitrary", "Native_Trade", "NATIVE_TRADE", "native-trade", "native_trade_v1", "native_trade "] {
+            assert!(!supported_application(application), "unregistered schema application accepted");
+        }
     }
 
     #[test]

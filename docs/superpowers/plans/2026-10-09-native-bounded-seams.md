@@ -39,3 +39,26 @@ Add real digest-only operation fences in this same schema: `prepare_operation(&Q
 1. Store implementer: runtime native_trade subtree, its migration and tests, lib export and native_trade database SchemaSpec integration only. Write behavioral tests first; no build/lint/tests/SQL mid-flight. Do not alter native_quote semantics.
 2. ETH implementer: NativeEthObligation.sol, its tests, NativeFinancialCodec/test vectors only if genuine byte-parity bug is established. Constructor test expectations migrate to the explicit origin pin. No Rust or runtime changes. Write tests first; no build/lint/tests mid-flight.
 3. Parent integration: compile and run once after handoff; affected Rust test/check and SQL compile-only, Forge offline actual tests plus in-process smoke, then one scoped review and fix concrete findings. Update evidence docs with separate counts. Preserve the F/J/C/R, complete lifecycle, companion/frontend and full-product requirements; no task is dropped by this decomposition.
+
+## Execution checkpoint — 2026-10-09
+
+- ETH source implements the frozen interface; full offline Foundry67/9suites and independent actual-verifier rejection smoke are exercised. Positive financial lifecycle remains unqualified without genuine composed certificates.
+- Protocol/chain/CLI call integration is exercised: protocol82all-target, chains118all-target, native CLI8process and Rust→Solidity3call smoke; protocol/chains Clippy passed. No signing/submission or SQL ran.
+- Store implementation is landed: SQL-off library10/integration4 and actual fresh-process encrypted quote/operation restart passed; seven new PostgreSQL cases compile only, **NOT RUN**. Selection AAD2 binds challenges/slots; Unknown retains hash/payload/reservation. Scoped review's exact shared application-registration defect is fixed and rereviewed; no remaining concrete findings.
+- Grounded Statement→F/J/C/R source checks are landed and exercised by genuine localF/R/C plus mismatches; proofs Clippy passed. Missing canonical private commitment/beneficiary/grant openings and composed financial guest/finality remain full-goal prerequisites, not invented authorities. Source/ETH scoped review found no actionable findings.
+- Quote challenge/sequence/version/private-buffer corrections and actual receiving dispatch are landed: quote6/dispatch4/codec1/DKG1 passed. There is no ordinary run-node owner quote-control bridge or complete economic quote schema. Full companion/frontend acceptance is not completed.
+- Target observation is landed: client11/CLI4 localHTTP checks and complete chains129/11suites passed with full hash/code/deployment pins; no Completed/refund/source release conversion. Native inspection/public-call/source-ETH source reviews found no actionable findings; runtime SQL-feature Clippy passed without SQL execution.
+
+Remaining scope retains the full lifecycle, both-role independent recovery, companion/four-screen integration and all R1–R10 acceptance. These module checkpoints do not mark the product done.
+
+## Commit instruction — owner 2026-10-09
+
+After current verification/fixes, commit all intended source/tests/docs; do not push. Existing target/node_modules/Foundry outputs remain ignored. Two tracked heavyweight legacy recovery executables are now removed from the index via exact ignores, **not deleted from disk**; both hashes match their preservation manifest. Existing history still contains their blobs; no destructive history rewrite is authorized or performed. Preserve ELFs/setup/custody/journals and all old rights.
+
+## Scoped review corrections — exercised and closed
+
+Native terminal ACK requests intentionally omit a response; bounded exact `(PeerId,InboundRequestId)` exemptions now consume only the resulting `ResponseOmission`, preserving the selected quote without an ACK loop. Genuine untracked failure still tears down. Shared codec requires actual EOF under the pinned handler's half-close semantics. Actual TCP/Noise/yamux two-swarm full signed quote/retry/omission regression and suffix/second-frame rejection passed; quote/dispatch/actual DKG CLI regression34 and node unit41 passed; SQL-feature runtime Clippy passed. Scoped rereview found no new actionable defect. There is still no ordinary run-node owner quote bridge or complete economic schema.
+
+Shared database acquisition now admits exact `native_trade` application alongside prior identities; exact registry regression1, custody10 and PostgreSQL compile-only passed. Alias/case/version-suffix admission remains rejected; catalog/manifest/migration/TLS controls are unchanged. Scoped Store rereview closed the sole finding. SQL lifecycle remains NOT RUN.
+
+Final current-source runtime all-target verification passed312checks/43suites,0failed,2ignored after all concrete corrections; SQL-feature Clippy passed. All owned source/tests/docs are ready for the explicitly authorized local checkpoint commit. Financial producer/companion requirements remain open as recorded above; this is not product completion or push/release approval.

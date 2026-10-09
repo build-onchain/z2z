@@ -13,8 +13,11 @@ mod network;
 mod reconnect;
 #[cfg(target_os = "linux")]
 mod tui;
-mod session;
+pub(crate) mod session;
 mod state;
+
+/// Explicit native coordination caller seam; no economic or transaction authority.
+pub use session::SessionTable as NativeQuoteSessions;
 
 use clap::{Parser, Subcommand};
 use std::{ffi::OsString, path::PathBuf, process::ExitCode};

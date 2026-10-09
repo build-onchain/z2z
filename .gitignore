@@ -6,3 +6,7 @@
 **/cache/
 **/broadcast/
 npm-debug.log*
+
+# Retained local recovery executables; preserve on disk, not in source commits.
+/legacy/samechain-fill-v1-pre-fill2-20261006/ziquid-native-v1
+/legacy/samechain-fill-v1-pre-fill2-20261006/ziquid-sp1-local-v1

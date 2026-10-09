@@ -1,16 +1,18 @@
-//! Public fixed-frame unsigned calls only. No stdin, private keys, SQL, RPC,
-//! signing, submission or proof/source/financial execution qualification.
+//! Public fixed-frame unsigned calls and explicit block-pinned RPC observations.
+//! No private stdin, keys, SQL, signing, submission or financial authority.
 use clap::{Args, Parser, Subcommand, ValueEnum, error::ErrorKind};
 use serde::Serialize;
 use std::{ffi::OsString, io::Write, path::{Path, PathBuf}, process::ExitCode};
 use ziquid_chains::native::{UnsignedCall, build_fund_and_arm_call, build_resolve_call};
+use ziquid_chains::native::inspection::{NativeInspectionClient, NativeInspectionError, NativeInspectionObservation, NativeInspectionScope};
+use zeroize::Zeroizing;
 use ziquid_protocol::native::{
     BOUNDARY_ENCODED_LEN, DEPLOYMENT_ENCODED_LEN, STATEMENT_ENCODED_LEN,
     DeploymentDescriptor, Resolution, SourceBoundary, Statement,
 };
 
 #[derive(Parser)]
-#[command(name = "ziquid native", version, about = "Offline public unsigned native calls; no signing, submission or financial execution")]
+#[command(name = "ziquid native", version, about = "Public native calls and trusted-node observations; no signing, submission or financial authority")]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -56,6 +58,23 @@ enum Command {
         #[arg(long, value_parser = decimal_u64)]
         cnet: u64,
     },
+    /// Observe one exact native deployment at a selected hash; never financial authority.
+    InspectObligation {
+        /// Independently retained exact 279-byte PUBLIC deployment descriptor.
+        #[arg(long)]
+        deployment: PathBuf,
+        /// Explicit nonzero 0x-prefixed 32-byte target block hash; no latest fallback.
+        #[arg(long, value_parser = public_block_hash)]
+        block_hash: [u8; 32],
+        /// Environment variable containing the private endpoint; never a URI on argv.
+        #[arg(long)]
+        endpoint_env: String,
+        #[arg(long)]
+        allow_loopback_http: bool,
+        /// Optional exact 638-byte PUBLIC statement for tag-bound obligation reads.
+        #[arg(long)]
+        statement: Option<PathBuf>,
+    },
 }
 
 #[derive(Clone, Copy, ValueEnum)]
@@ -86,8 +105,12 @@ pub fn run_cli(arguments: impl IntoIterator<Item = OsString>) -> ExitCode {
 }
 
 fn execute(command: Command) -> Result<Vec<u8>, &'static str> {
+    if let Command::InspectObligation { deployment, block_hash, endpoint_env, allow_loopback_http, statement } = &command {
+        return execute_inspection(deployment, *block_hash, endpoint_env, *allow_loopback_http, statement.as_deref());
+    }
     let common = match &command {
         Command::BuildArmCall { common, .. } | Command::BuildResolveCall { common, .. } => common,
+        Command::InspectObligation { .. } => return Err("invalid native command arguments"),
     };
     let deployment = DeploymentDescriptor::decode(&read_frame(&common.deployment, DEPLOYMENT_ENCODED_LEN)?)
         .map_err(|_| "invalid native public deployment encoding")?;
@@ -111,6 +134,7 @@ fn execute(command: Command) -> Result<Vec<u8>, &'static str> {
                 &deployment, &statement, &boundary, sender, outcome, cnet, &financial, &acceptance,
             ))
         }
+        Command::InspectObligation { .. } => return Err("invalid native command arguments"),
     };
     let call = call.map_err(|_| "native public call rejected")?;
     encode_call(operation, &call)
@@ -151,18 +175,26 @@ fn read_frame(_path: &Path, _length: usize) -> Result<Vec<u8>, &'static str> {
 }
 
 fn public_address(value: &str) -> Result<[u8; 20], &'static str> {
-    let bytes = value.strip_prefix("0x").filter(|hex| hex.len() == 40)
-        .ok_or("invalid native public address")?.as_bytes();
-    let mut decoded = [0; 20];
+    public_fixed(value).map_err(|_| "invalid native public address")
+}
+
+fn public_block_hash(value: &str) -> Result<[u8; 32], &'static str> {
+    public_fixed(value).map_err(|_| "invalid native public block hash")
+}
+
+fn public_fixed<const N: usize>(value: &str) -> Result<[u8; N], &'static str> {
+    let bytes = value.strip_prefix("0x").filter(|hex| hex.len() == N * 2)
+        .ok_or("invalid native public hex")?.as_bytes();
+    let mut decoded = [0; N];
     for (out, pair) in decoded.iter_mut().zip(bytes.as_chunks::<2>().0.iter()) {
         let digit = |byte: u8| match byte {
             b'0'..=b'9' => Some(byte - b'0'), b'a'..=b'f' => Some(byte - b'a' + 10),
             b'A'..=b'F' => Some(byte - b'A' + 10), _ => None,
         };
         *out = digit(pair[0]).and_then(|high| digit(pair[1]).map(|low| high * 16 + low))
-            .ok_or("invalid native public address")?;
+            .ok_or("invalid native public hex")?;
     }
-    if decoded == [0; 20] { return Err("invalid native public address"); }
+    if decoded == [0; N] { return Err("invalid native public hex"); }
     Ok(decoded)
 }
 
@@ -216,6 +248,73 @@ fn encode_call(operation: &'static str, call: &UnsignedCall) -> Result<Vec<u8>, 
         source_acceptance: "UNVERIFIED", source_finality: "UNVERIFIED", asset_backing: "UNVERIFIED",
         proof_certificate: false, signing: false, submission: false, financial_execution: false,
     };
+    let mut bytes = serde_json::to_vec(&export).map_err(|_| "native public export rejected")?;
+    bytes.push(b'\n');
+    Ok(bytes)
+}
+
+fn execute_inspection(
+    deployment: &Path, block_hash: [u8; 32], endpoint_env: &str,
+    allow_loopback_http: bool, statement: Option<&Path>,
+) -> Result<Vec<u8>, &'static str> {
+    let expected = DeploymentDescriptor::decode(&read_frame(deployment, DEPLOYMENT_ENCODED_LEN)?)
+        .map_err(|_| "invalid native public deployment encoding")?;
+    let scope = NativeInspectionScope { expected, block_hash };
+    scope.validate().map_err(NativeInspectionError::message)?;
+    let statement = statement.map(|path| {
+        Statement::decode(&read_frame(path, STATEMENT_ENCODED_LEN)?)
+            .map_err(|_| "invalid native public statement encoding")
+    }).transpose()?;
+    let mut name = endpoint_env.bytes();
+    if !name.next().is_some_and(|byte| byte.is_ascii_alphabetic() || byte == b'_')
+        || !name.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
+    {
+        return Err("native inspection endpoint environment unavailable");
+    }
+    let endpoint = std::env::var(endpoint_env).map(Zeroizing::new)
+        .map_err(|_| "native inspection endpoint environment unavailable")?;
+    let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build()
+        .map_err(|_| "native inspection runtime unavailable")?;
+    let observation = runtime.block_on(async {
+        let client = NativeInspectionClient::new(&endpoint, allow_loopback_http)
+            .map_err(NativeInspectionError::message)?;
+        client.inspect(&scope, statement.as_ref()).await.map_err(NativeInspectionError::message)
+    })?;
+    encode_inspection(&observation)
+}
+
+fn encode_inspection(observation: &NativeInspectionObservation) -> Result<Vec<u8>, &'static str> {
+    let d = observation.deployment();
+    let mut export = serde_json::json!({
+        "kind":"native_obligation_observation", "source_scope":observation.source_scope(),
+        "block_hash":public_hex(&observation.block_hash()), "block_number":observation.block_number().to_string(),
+        "parent_hash":public_hex(&observation.parent_hash()), "deployment_digest":public_hex(&d.digest()),
+        "expected_deployment":{
+            "schema_version":d.schema_version, "source_network":d.source_network, "source_pool":d.source_pool,
+            "transaction_version":d.transaction_version, "consensus_branch":d.consensus_branch,
+            "financial_program":public_hex(&d.financial_program), "origin_program":public_hex(&d.origin_program),
+            "source_acceptance_program":public_hex(&d.source_acceptance_program), "source_policy_id":public_hex(&d.source_policy_id),
+            "target_chain_id":d.target_chain_id.to_string(), "obligation":public_hex(&d.obligation),
+            "obligation_runtime_code":public_hex(&d.obligation_runtime_code), "verifier":public_hex(&d.verifier),
+            "verifier_runtime_code":public_hex(&d.verifier_runtime_code),
+        },
+        "reported_total_liability_wei":observation.total_liability().to_string(),
+        "finality":observation.finality(), "program_qualification":observation.program_qualification(),
+        "proof_validity":observation.proof_validity(), "source_acceptance":"UNVERIFIED", "source_finality":"UNVERIFIED",
+        "asset_backing":observation.asset_backing(), "actual_transfer":observation.actual_transfer(),
+        "proof_certificate":false, "signing":false, "submission":false, "financial_execution":false,
+        "response_sha256":observation.response_digests().iter().map(|digest| public_hex(digest)).collect::<Vec<_>>(),
+    });
+    if let Some(row) = observation.obligation() {
+        export["obligation"] = serde_json::json!({
+            "context_digest":public_hex(&row.context_digest()), "queried_stable_jtag":public_hex(&row.queried_stable_jtag()),
+            "reported_d_wei":row.d().to_string(), "reported_a_zat":row.a().to_string(),
+            "reported_payer":public_hex(&row.payer()), "reported_u_payee":public_hex(&row.u_payee()),
+            "reported_s_refund":public_hex(&row.s_refund()), "reported_stable_jtag":public_hex(&row.stable_jtag()),
+            "reported_armed":row.reported_armed(), "reported_consumed":row.reported_consumed(),
+            "reported_tag_context":public_hex(&row.reported_tag_context()),
+        });
+    }
     let mut bytes = serde_json::to_vec(&export).map_err(|_| "native public export rejected")?;
     bytes.push(b'\n');
     Ok(bytes)

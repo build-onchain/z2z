@@ -55,19 +55,25 @@ pub(super) fn save_bytes(
 ) -> Result<[u8; 32], NativeTradeError> {
     if location.namespace == [0; 32] || payload.is_empty() { return Err(NativeTradeError::Binding); }
     if payload.len() > MAX_PRIVATE_BYTES { return Err(NativeTradeError::ResourceLimit); }
-    let length = PAYLOAD_DOMAIN.len() + 2 + 2 + 32 + 4 + payload.len();
-    // Full capacity is reserved before private filling. Detached AEAD never grows it.
-    let mut bytes = Zeroizing::new(Vec::with_capacity(length + 16));
-    bytes.extend_from_slice(PAYLOAD_DOMAIN);
-    bytes.extend_from_slice(&VERSION.to_be_bytes());
-    bytes.extend_from_slice(&purpose.to_be_bytes());
-    bytes.extend_from_slice(&selection);
-    bytes.extend_from_slice(&(payload.len() as u32).to_be_bytes());
+    let mut bytes = payload_buffer(selection, purpose, payload.len());
     bytes.extend_from_slice(payload);
     save_encrypted(location.path, location.key, location.namespace, context(selection, purpose), FORMAT, bytes)?;
     let (readback, digest) = load_bytes(location, selection, purpose, None)?;
     if !bool::from(readback.ct_eq(payload)) { return Err(NativeTradeError::Conflict); }
     Ok(digest)
+}
+
+fn payload_buffer(selection: [u8; 32], purpose: u16, payload_length: usize) -> Zeroizing<Vec<u8>> {
+    // Reserve the full envelope before private filling; no growth can free a
+    // previous unwiped allocation, including any downstream AEAD tag capacity.
+    let length = PAYLOAD_DOMAIN.len() + 2 + 2 + 32 + 4 + payload_length;
+    let mut bytes = Zeroizing::new(Vec::with_capacity(length + 16));
+    bytes.extend_from_slice(PAYLOAD_DOMAIN);
+    bytes.extend_from_slice(&VERSION.to_be_bytes());
+    bytes.extend_from_slice(&purpose.to_be_bytes());
+    bytes.extend_from_slice(&selection);
+    bytes.extend_from_slice(&(payload_length as u32).to_be_bytes());
+    bytes
 }
 
 pub(super) fn load_bytes(
@@ -134,7 +140,9 @@ pub fn save_operation_capsule(
     validate_selection(selection)?;
     binding.validate()?;
     validate_payload(binding, payload)?;
-    let mut bytes = Zeroizing::new(Vec::with_capacity(OPERATION_BINDING_BYTES + payload.len()));
+    if location.namespace == [0; 32] { return Err(NativeTradeError::Binding); }
+    let selection_digest = quote_selection_digest(selection);
+    let mut bytes = payload_buffer(selection_digest, OPERATION_PURPOSE, OPERATION_BINDING_BYTES + payload.len());
     bytes.extend_from_slice(OPERATION_DOMAIN);
     bytes.extend_from_slice(&VERSION.to_be_bytes());
     for field in [binding.op_id, binding.context_digest, binding.deployment_digest, binding.stable_j_tag, binding.payload_digest] {
@@ -143,9 +151,17 @@ pub fn save_operation_capsule(
     bytes.extend_from_slice(&binding.action.to_be_bytes());
     bytes.extend_from_slice(&(payload.len() as u32).to_be_bytes());
     bytes.extend_from_slice(payload);
-    let digest = save_bytes(location, quote_selection_digest(selection), OPERATION_PURPOSE, &bytes)?;
-    let readback = load_operation(location, selection, binding, digest)?;
-    if !bool::from(readback.ct_eq(payload)) { return Err(NativeTradeError::Conflict); }
+    save_encrypted(location.path, location.key, location.namespace, context(selection_digest, OPERATION_PURPOSE), FORMAT, bytes)?;
+    // Digest belongs to this authenticated installed read, not a separately opened
+    // raw file. The Store authenticates it again before any Released commit.
+    let (readback, digest) = load_bytes(location, selection_digest, OPERATION_PURPOSE, None)?;
+    let mut reader = Reader(&readback);
+    if reader.take(OPERATION_DOMAIN.len())? != OPERATION_DOMAIN || reader.u16()? != VERSION { return Err(NativeTradeError::Encoding); }
+    let restored = OperationBinding { op_id: reader.array()?, context_digest: reader.array()?, deployment_digest: reader.array()?,
+        stable_j_tag: reader.array()?, payload_digest: reader.array()?, action: reader.u16()? };
+    if restored != *binding { return Err(NativeTradeError::Binding); }
+    if !bool::from(reader.blob(MAX_OPERATION_BYTES)?.ct_eq(payload)) { return Err(NativeTradeError::Conflict); }
+    reader.finish()?;
     Ok(digest)
 }
 
@@ -184,14 +200,7 @@ fn validate_payload(binding: &OperationBinding, payload: &[u8]) -> Result<(), Na
 }
 
 pub(super) fn validate_selection(selection: &QuoteSelection) -> Result<(), NativeTradeError> {
-    if [selection.owner_scope, selection.session_id, selection.initiator_coord_key,
-        selection.responder_coord_key, selection.chain_context, selection.deployment_context,
-        selection.quote_id, selection.s_offer_id, selection.u_trade_intent_id, selection.challenge_i,
-        selection.challenge_r].contains(&[0; 32])
-        || selection.proposal_seq == 0 || selection.user_acceptance_seq == 0 || selection.solver_acceptance_seq == 0 {
-        return Err(NativeTradeError::Binding);
-    }
-    Ok(())
+    crate::native_quote::validate_selection(selection).map_err(|_| NativeTradeError::Binding)
 }
 
 pub(super) struct Reader<'a>(pub(super) &'a [u8]);

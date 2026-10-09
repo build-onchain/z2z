@@ -162,7 +162,7 @@ async fn release_requires_authenticated_capsule_and_unknown_retains_known_hash_a
     assert_eq!(reconciled.tx_hash, Some(tx_hash));
     let mut changed = binding;
     changed.payload_digest = [83; 32];
-    assert_eq!(restarted.prepare_operation(&selection, reconciled.cursor, changed).await.unwrap_err(), NativeTradeError::Conflict);
+    assert_eq!(restarted.prepare_operation(&selection, reconciled.cursor, changed).await.unwrap_err(), NativeTradeError::Stopped);
     drop(restarted);
     database.remove().await;
 }
@@ -205,5 +205,48 @@ async fn cross_quote_concurrency_and_restart_never_free_stable_note_reservation(
     assert_eq!(read.state, OperationState::Unknown);
     assert_eq!(read.binding, winning_binding);
     drop(restarted);
+    database.remove().await;
+}
+
+#[tokio::test]
+async fn operation_release_cas_takeover_and_exact_retry_never_replace_original_bytes() {
+    let database = TestDatabase::create("native_opcas").await;
+    let first = NativeTradeStore::connect(database.config.clone()).await.unwrap();
+    first.migrate().await.unwrap();
+    let second = NativeTradeStore::connect(database.config.clone()).await.unwrap();
+    let directory = native_trade_support::private_directory();
+    let quote = agreed(&first, directory.path(), 8).await;
+    let selection = *quote.quote().selection();
+    let payload = b"exact original operation after takeover";
+    let binding = native_trade_support::binding(31, payload);
+    let prepared = first.prepare_operation(&selection, quote.snapshot().cursor, binding).await.unwrap();
+    let retry = second.prepare_operation(&selection, prepared.cursor, binding).await.unwrap();
+    assert_eq!(retry, prepared);
+    let mut changed = binding;
+    changed.context_digest = [84; 32];
+    assert_eq!(second.prepare_operation(&selection, prepared.cursor, changed).await.unwrap_err(), NativeTradeError::Conflict);
+    let takeover = second.claim_writer(&selection, prepared.cursor).await.unwrap();
+    let path = directory.path().join("operation");
+    let key = [71; 32];
+    let location = CapsuleLocation { path: &path, key: &key, namespace: [72; 32] };
+    let digest = save_operation_capsule(location, &selection, &binding, payload).unwrap();
+    assert_eq!(first.release_operation(location, &selection, prepared.cursor, binding.op_id, digest).await.unwrap_err(), NativeTradeError::StaleGeneration);
+    let (left, right) = tokio::join!(first.release_operation(location, &selection, takeover.cursor, binding.op_id, digest),
+        second.release_operation(location, &selection, takeover.cursor, binding.op_id, digest));
+    assert_eq!(usize::from(left.is_ok()) + usize::from(right.is_ok()), 1);
+    let released = left.ok().or_else(|| right.ok()).unwrap();
+    assert_eq!(released.payload(), payload);
+    let retry = first.release_operation(location, &selection, released.snapshot().cursor, binding.op_id, digest).await.unwrap();
+    assert_eq!(retry.snapshot(), released.snapshot());
+    assert_eq!(retry.payload(), payload);
+    assert_eq!(second.mark_submitted(&selection, takeover.cursor, binding.op_id, [85; 32]).await.unwrap_err(), NativeTradeError::StaleVersion);
+    let unknown = first.mark_unknown(&selection, retry.snapshot().cursor, binding.op_id).await.unwrap();
+    let observed = second.mark_submitted(&selection, unknown.cursor, binding.op_id, [85; 32]).await.unwrap();
+    assert_eq!(observed.state, OperationState::Submitted);
+    assert_eq!(observed.tx_hash, Some([85; 32]));
+    assert_eq!(observed.binding, binding);
+    assert_eq!(observed.capsule_digest, Some(digest));
+    drop(first);
+    drop(second);
     database.remove().await;
 }

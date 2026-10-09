@@ -25,16 +25,17 @@ pub fn quote(phase: QuotePhase, identity: u8, terms_marker: u8) -> Authenticated
         deployment_context: Sha256::digest(&body[303..587]).into(),
         quote_id: [identity; 32], s_offer_id: [9; 32], u_trade_intent_id: [10; 32],
         challenge_i: [11; 32], challenge_r: [12; 32],
-        proposal_seq: 1, user_acceptance_seq: 2, solver_acceptance_seq: 2,
+        // Fresh-J ceremony retains both senders through slot4; quote ACKs occupy U5/S6.
+        proposal_seq: 5, user_acceptance_seq: 6, solver_acceptance_seq: 7,
     };
-    let proposal = envelope(&selection, &solver, 1, 13, &body);
+    let proposal = envelope(&selection, &solver, selection.proposal_seq, 13, &body);
     let q: [u8; 32] = Sha256::digest(body).into();
     let proposal_hash: [u8; 32] = Sha256::digest(&proposal).into();
     let user_frame = if phase == QuotePhase::Proposal { Vec::new() } else {
-        envelope(&selection, &user, 2, 14, &accept(NativeRole::User, &selection, q, proposal_hash, proposal_hash))
+        envelope(&selection, &user, selection.user_acceptance_seq, 14, &accept(NativeRole::User, &selection, q, proposal_hash, proposal_hash))
     };
     let solver_frame = if phase != QuotePhase::Agreed { Vec::new() } else {
-        envelope(&selection, &solver, 2, 14, &accept(NativeRole::Solver, &selection, q,
+        envelope(&selection, &solver, selection.solver_acceptance_seq, 14, &accept(NativeRole::Solver, &selection, q,
             proposal_hash, Sha256::digest(&user_frame).into()))
     };
     let mut bundle = b"Z2Z_NATIVE_AUTH_QUOTE\0".to_vec();
